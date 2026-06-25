@@ -1,0 +1,109 @@
+<?php
+require_once 'includes/auth.php';
+
+if (isLoggedIn()) {
+    redirect(isAdmin() ? 'admin/index.php' : 'index.php');
+}
+
+$message = '';
+$message_type = 'error';
+$savedUsername = getRememberedUsername();
+
+if (!empty($_SESSION['flash']['login'])) {
+    $message = $_SESSION['flash']['login']['message'];
+    $message_type = $_SESSION['flash']['login']['type'];
+    unset($_SESSION['flash']['login']);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $remember = !empty($_POST['remember']);
+
+    if ($username === '' || $password === '') {
+        $message = 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.';
+    } else {
+        $stmt = $conn->prepare("SELECT id, username, password, role, is_active FROM users WHERE username = ? OR email = ? LIMIT 1");
+        $stmt->bind_param("ss", $username, $username);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if ($user && $user['is_active'] && password_verify($password, $user['password'])) {
+            loginUser($user);
+
+            if ($remember) {
+                setRememberMe($conn, $user['id'], $user['username']);
+            } else {
+                clearRememberMe($conn, $user['id']);
+            }
+
+            $redirect = $_SESSION['redirect_after_login'] ?? (isAdmin() || isEmployee() ? 'admin/index.php' : 'index.php');
+            unset($_SESSION['redirect_after_login']);
+            redirect($redirect);
+        } else {
+            $message = 'Tên đăng nhập/email hoặc mật khẩu không đúng.';
+        }
+    }
+    $savedUsername = $username;
+}
+?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Gundam Store</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light-theme');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="assets/app.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <i class="fas fa-robot"></i>
+            <span>Gundam Store HUMG</span>
+        </div>
+        <h1>Đăng nhập</h1>
+        <p class="auth-subtitle">Chào mừng bạn quay lại. Đăng nhập để lưu giỏ hàng, xem đơn hàng và tiếp tục nhận tư vấn AI.</p>
+
+        <?php if ($message): ?>
+            <div class="alert alert-<?php echo htmlspecialchars($message_type); ?>"><?php echo htmlspecialchars($message); ?></div>
+        <?php endif; ?>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Tên đăng nhập hoặc email</label>
+                <input type="text" name="username" id="username" class="form-control" placeholder="Ví dụ: amuro_ray" required autofocus
+                       value="<?php echo htmlspecialchars($savedUsername); ?>">
+            </div>
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="Nhập mật khẩu của bạn" required>
+            </div>
+            <div class="form-group remember-group">
+                <label class="remember-label">
+                    <input type="checkbox" name="remember" id="remember" value="1"
+                        <?php echo !empty($_COOKIE[REMEMBER_COOKIE]) ? 'checked' : ''; ?>>
+                    <span>Ghi nhớ đăng nhập</span>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-blue" style="width:100%">Đăng nhập</button>
+        </form>
+
+        <div class="auth-link">
+            <p>Chưa có tài khoản? <a href="register.php">Tạo tài khoản mới</a></p>
+            <p style="margin-top:10px"><a href="index.php"><i class="fas fa-arrow-left"></i> Về trang chủ</a></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -57,7 +57,7 @@ include 'includes/header.php';
             <?php if ($order['payment_method'] === 'bank_transfer' && in_array($order['status'], ['pending', 'confirmed'])): ?>
             <!-- VietQR block inside customer order detail -->
             <div style="margin-top: 30px; padding: 20px; background: rgba(31, 95, 255, 0.08); border: 2px dashed var(--primary-blue); border-radius: 12px; text-align: center;">
-                <h3 style="margin-top: 0; color: white;"><i class="fas fa-qrcode"></i> Quét mã QR thanh toán</h3>
+                <h3 style="margin-top: 0; color: var(--text-main);"><i class="fas fa-qrcode"></i> Quét mã QR thanh toán</h3>
                 <p style="color: var(--text-gray); font-size: 0.9rem; margin-bottom: 20px;">Quét mã VietQR dưới đây để thanh toán chuyển khoản nhanh chóng và chính xác.</p>
                 <div style="display: inline-block; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 15px;">
                     <img src="https://img.vietqr.io/image/vietinbank-113366668888-compact.jpg?amount=<?php echo urlencode($order['total']); ?>&addInfo=<?php echo urlencode($order['order_code']); ?>" alt="VietQR Payment" style="max-width: 250px; display: block; border-radius: 4px;">
@@ -126,8 +126,8 @@ include 'includes/header.php';
         <div style="width:70px;height:70px;background:rgba(231,76,60,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;border:2px solid rgba(231,76,60,0.4);">
             <i class="fas fa-exclamation-triangle" style="font-size:2rem;color:#e74c3c;"></i>
         </div>
-        <h3 style="color:white;margin:0 0 10px;font-size:1.3rem;">Xác nhận hủy đơn hàng?</h3>
-        <p style="color:#aaa;font-size:0.95rem;margin-bottom:8px;">Mã đơn: <strong id="cancelOrderCode" style="color:white;"></strong></p>
+        <h3 style="color:var(--text-main);margin:0 0 10px;font-size:1.3rem;">Xác nhận hủy đơn hàng?</h3>
+        <p style="color:var(--text-muted);font-size:0.95rem;margin-bottom:8px;">Mã đơn: <strong id="cancelOrderCode" style="color:var(--text-main);"></strong></p>
         <p style="color:#e74c3c;font-size:0.85rem;margin-bottom:24px;">⚠️ Hành động này không thể hoàn tác. Đơn hàng sẽ bị hủy vĩnh viễn.</p>
         <div style="display:flex;gap:12px;justify-content:center;">
             <button onclick="closeCancelModal()" style="flex:1;padding:12px;background:#333;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:600;">

@@ -87,7 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="form-group">
                 <label for="password">Mật khẩu</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="Nhập mật khẩu của bạn" required>
+                <div style="position: relative;">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Nhập mật khẩu của bạn" required style="padding-right: 40px;">
+                    <i class="fas fa-eye" id="togglePassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; z-index: 10;"></i>
+                </div>
             </div>
             <div class="form-group remember-group">
                 <label class="remember-label">
@@ -105,5 +108,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        this.classList.remove('fa-eye');
+        this.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        this.classList.remove('fa-eye-slash');
+        this.classList.add('fa-eye');
+    }
+});
+</script>
 </body>
 </html>
+

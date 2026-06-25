@@ -109,6 +109,34 @@ if ($action === 'list') {
         exit;
     }
 
+} elseif ($action === 'mark_all_read') {
+    try {
+        $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $stmt->close();
+
+        $stmt = $conn->prepare("
+            INSERT IGNORE INTO notification_reads (user_id, notification_id)
+            SELECT ?, n.id FROM notifications n
+            WHERE n.user_id IS NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM notification_reads nr
+                  WHERE nr.notification_id = n.id AND nr.user_id = ?
+              )
+        ");
+        $stmt->bind_param("ii", $userId, $userId);
+        $stmt->execute();
+        $stmt->close();
+
+        echo json_encode(['success' => true, 'unread_count' => 0], JSON_UNESCAPED_UNICODE);
+        exit;
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'DB error: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
 } else {
     http_response_code(400);
     echo json_encode(['error' => 'Action not found'], JSON_UNESCAPED_UNICODE);

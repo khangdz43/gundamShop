@@ -124,7 +124,7 @@ if (!function_exists('adminNavActive')) {
                 </button>
                 <div id="notificationDropdown"
                      style="display:none; position:absolute; right:0; top:120%; width:320px; max-height:400px; overflow-y:auto; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); box-shadow:var(--shadow-main); z-index:2000; padding:10px 0;">
-                    <div style="padding:10px 15px; border-bottom:1px solid var(--border-color); font-weight:bold; color:white; font-family:'Outfit';">Thông báo</div>
+                    <div class="notification-dropdown-header" style="padding:10px 15px; border-bottom:1px solid var(--border-color); font-weight:bold; color:var(--text-main); font-family:'Outfit';">Thông báo</div>
                     <div id="notificationList" style="max-height:300px; overflow-y:auto;">
                         <div style="padding:15px; text-align:center; color:var(--text-muted);">Đang tải...</div>
                     </div>

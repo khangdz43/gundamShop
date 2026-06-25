@@ -1163,3 +1163,41 @@ html.light-theme .btn-detail:hover,
 html.light-theme button[type="submit"] {
     color: #ffffff !important;
 }
+
+/* Light theme overrides for action and secondary buttons */
+html.light-theme .btn-secondary,
+html.light-theme .btn-cancel,
+html.light-theme .btn-modal-cancel {
+    background-color: #e5e7eb !important;
+    color: #1f2937 !important;
+    border: 1px solid rgba(17,24,39,0.15) !important;
+}
+
+html.light-theme .btn-secondary:hover,
+html.light-theme .btn-cancel:hover,
+html.light-theme .btn-modal-cancel:hover {
+    background-color: #d1d5db !important;
+    color: #111827 !important;
+}
+
+html.light-theme .btn-admin.btn-secondary {
+    background-color: #e5e7eb !important;
+    color: #1f2937 !important;
+    border: 1px solid rgba(17,24,39,0.15) !important;
+}
+
+html.light-theme .btn-admin.btn-secondary:hover {
+    background-color: #d1d5db !important;
+    color: #111827 !important;
+}
+
+html.light-theme .btn-action.btn-edit {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: #ffffff !important;
+}
+
+html.light-theme .btn-action.btn-delete {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    color: #ffffff !important;
+}
+

@@ -11,6 +11,7 @@ $message_type = 'error';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
     $email = trim($_POST['email'] ?? '');
     $fullName = trim($_POST['full_name'] ?? '');
 
@@ -22,6 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = 'Email không hợp lệ.';
     } elseif (strlen($password) < 7) {
         $message = 'Mật khẩu phải có ít nhất 7 ký tự.';
+    } elseif ($password === $username) {
+        $message = 'Mật khẩu không được trùng với tên đăng nhập.';
+    } elseif ($password !== $confirm_password) {
+        $message = 'Mật khẩu nhập lại không trùng khớp.';
     } else {
         $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
         $stmt->bind_param("ss", $username, $email);
@@ -99,7 +104,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="form-group">
                 <label for="password">Mật khẩu</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="Tối thiểu 7 ký tự" required minlength="7">
+                <div style="position: relative;">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Tối thiểu 7 ký tự" required minlength="7" style="padding-right: 40px;">
+                    <i class="fas fa-eye" id="togglePassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; z-index: 10;"></i>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Nhập lại mật khẩu</label>
+                <div style="position: relative;">
+                    <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Nhập lại mật khẩu" required minlength="7" style="padding-right: 40px;">
+                    <i class="fas fa-eye" id="toggleConfirmPassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; z-index: 10;"></i>
+                </div>
             </div>
             <button type="submit" class="btn btn-blue" style="width:100%">Tạo tài khoản</button>
         </form>
@@ -110,5 +125,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+
+<script>
+function setupPasswordToggle(inputId, toggleId) {
+    const toggleElement = document.getElementById(toggleId);
+    if (toggleElement) {
+        toggleElement.addEventListener('click', function () {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            }
+        });
+    }
+}
+setupPasswordToggle('password', 'togglePassword');
+setupPasswordToggle('confirm_password', 'toggleConfirmPassword');
+</script>
 </body>
 </html>

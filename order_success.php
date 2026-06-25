@@ -30,7 +30,7 @@ include 'includes/header.php';
         </div>
         <?php if ($order['payment_method'] === 'bank_transfer'): ?>
         <div style="margin-top: 25px; margin-bottom: 25px; padding: 20px; background: rgba(31, 95, 255, 0.08); border: 2px dashed var(--primary-blue); border-radius: 12px; text-align: center;">
-            <h3 style="margin-top: 0; color: white;"><i class="fas fa-qrcode"></i> Quét mã QR để thanh toán</h3>
+            <h3 style="margin-top: 0; color: var(--text-main);"><i class="fas fa-qrcode"></i> Quét mã QR để thanh toán</h3>
             <p style="color: var(--text-gray); font-size: 0.9rem; margin-bottom: 15px;">Quét mã VietQR dưới đây để tự động nhập thông tin chuyển khoản.</p>
             <div style="display: inline-block; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 15px;">
                 <img src="https://img.vietqr.io/image/vietinbank-113366668888-compact.jpg?amount=<?php echo urlencode($order['total']); ?>&addInfo=<?php echo urlencode($order['order_code']); ?>" alt="VietQR Payment" style="max-width: 220px; display: block; border-radius: 4px;">

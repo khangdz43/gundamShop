@@ -17,9 +17,14 @@ if (!$input) {
 $history     = $input['history']     ?? [];
 $contextData = $input['context']     ?? '';
 
-$config  = require_once '../config/gemini.php';
-$apiKey  = $config['api_key'];
+$config  = require __DIR__ . '/../config/gemini.php';
+$apiKey  = $config['api_key'] ?? '';
 $model   = $config['model'] ?? 'gemini-2.5-flash';
+
+if (empty($apiKey)) {
+    echo json_encode(['success' => false, 'error' => 'Chưa cấu hình API key Gemini'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 // ======================================================
 // SYSTEM PROMPT dành riêng cho ADMIN - khác chatbot khách hàng
@@ -53,15 +58,20 @@ if (!empty($contextData)) {
     $adminSystemPrompt .= $contextData;
 }
 
-// Build request body cho Gemini
+// Build request body cho Gemini (role phải là user/model, xen kẽ)
 $contents = [];
 foreach ($history as $msg) {
-    if (isset($msg['role']) && isset($msg['parts'])) {
-        $contents[] = [
-            'role'  => $msg['role'],
-            'parts' => $msg['parts']
-        ];
-    }
+    if (!isset($msg['parts'][0]['text'])) continue;
+    $role = ($msg['role'] ?? '') === 'model' ? 'model' : 'user';
+    $contents[] = [
+        'role'  => $role,
+        'parts' => [['text' => trim($msg['parts'][0]['text'])]]
+    ];
+}
+
+if (empty($contents)) {
+    echo json_encode(['success' => false, 'error' => 'Tin nhắn trống'], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 $body = [
@@ -76,15 +86,20 @@ $body = [
     ]
 ];
 
-$url  = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+if (!function_exists('curl_init')) {
+    echo json_encode(['success' => false, 'error' => 'Máy chủ chưa bật cURL'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+$url  = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($apiKey);
 $ch   = curl_init($url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => json_encode($body),
+    CURLOPT_POSTFIELDS     => json_encode($body, JSON_UNESCAPED_UNICODE),
     CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
     CURLOPT_TIMEOUT        => 60,
-    CURLOPT_SSL_VERIFYPEER => false,
+    CURLOPT_SSL_VERIFYPEER => true,
 ]);
 
 $response = curl_exec($ch);

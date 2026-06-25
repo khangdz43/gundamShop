@@ -22,7 +22,9 @@
         <p>&copy; <?php echo date('Y'); ?> Gundam Store HUMG - All Rights Reserved</p>
     </div>
 </footer>
+<?php if (!isAdmin() && !isEmployee()): ?>
 <?php include __DIR__ . '/chatbot.php'; ?>
+<?php endif; ?>
 <script src="<?php echo $basePath ?? ''; ?>assets/app.js"></script>
 </body>
 </html>

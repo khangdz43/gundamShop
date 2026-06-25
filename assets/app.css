@@ -545,7 +545,7 @@ html.light-theme .btn-header.btn-user {
     margin: 40px 0 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background: linear-gradient(90deg, var(--text-white), var(--primary-blue));
+    background: linear-gradient(90deg, var(--text-main), var(--primary-blue));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -747,7 +747,7 @@ html.light-theme .form-control {
     font-size: 1.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background: linear-gradient(90deg, var(--text-white), var(--primary-blue));
+    background: linear-gradient(90deg, var(--text-main), var(--primary-blue));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -1711,7 +1711,7 @@ html.light-theme .hero-content {
     margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background: linear-gradient(90deg, var(--text-white), var(--primary-blue));
+    background: linear-gradient(90deg, var(--text-main), var(--primary-blue));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -2171,6 +2171,25 @@ html.light-theme .admin-header-actions .btn-header:not(.active) {
 html.light-theme .admin-header-actions .btn-header.active,
 html.light-theme .admin-header-actions .btn-admin.active {
     color: #ffffff !important;
+}
+
+/* Light theme: notification & inline white text fixes */
+html.light-theme .notification-dropdown-header {
+    color: var(--text-main) !important;
+}
+
+html.light-theme .notification-item.unread .notification-title,
+html.light-theme .notification-item [style*="font-weight: bold"] {
+    color: var(--text-main) !important;
+}
+
+html.light-theme .ai-bubble strong {
+    color: var(--text-main) !important;
+}
+
+html.light-theme .qr-section-title,
+html.light-theme .cancel-modal-title {
+    color: var(--text-main) !important;
 }
 
 @media (max-width: 1180px) {

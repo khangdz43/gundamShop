@@ -325,6 +325,23 @@ function initNotifications() {
 
     let unreadCount = 0;
 
+    function resetBadge() {
+        unreadCount = 0;
+        badge.textContent = '0';
+        badge.style.display = 'none';
+    }
+
+    async function markAllAsRead() {
+        if (unreadCount <= 0) return;
+        try {
+            const res = await fetch(base + 'api/notifications.php?action=mark_all_read', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) resetBadge();
+        } catch (e) {
+            console.error('Lỗi đánh dấu đã đọc:', e);
+        }
+    }
+
     async function loadNotifications() {
         try {
             const res = await fetch(base + 'api/notifications.php?action=list');
@@ -346,14 +363,14 @@ function initNotifications() {
             list.innerHTML = data.notifications.map(notif => {
                 const isUnread = notif.is_read === 0;
                 const dotHtml = isUnread ? `<span class="unread-dot" style="width: 8px; height: 8px; background: var(--primary-blue); border-radius: 50%; display: inline-block;"></span>` : '';
-                const titleColor = isUnread ? 'white' : 'var(--text-muted)';
+                const titleColor = isUnread ? 'var(--text-main)' : 'var(--text-muted)';
                 const titleWeight = isUnread ? 'bold' : 'normal';
 
                 return `
                     <div class="notification-item ${isUnread ? 'unread' : ''}" 
                          data-id="${notif.id}"
                          style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.3s; text-align: left;"
-                         onmouseover="this.style.background='rgba(255, 255, 255, 0.04)'" 
+                         onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.04))'" 
                          onmouseout="this.style.background='transparent'">
                         <div style="font-weight: ${titleWeight}; font-size: 0.92rem; color: ${titleColor}; display: flex; align-items: center; justify-content: space-between;">
                             <span>${notif.title}</span>
@@ -410,11 +427,12 @@ function initNotifications() {
     }
 
     // Toggle dropdown
-    bell.addEventListener('click', (e) => {
+    bell.addEventListener('click', async (e) => {
         e.stopPropagation();
         const isOpen = dropdown.style.display === 'block';
         dropdown.style.display = isOpen ? 'none' : 'block';
         if (!isOpen) {
+            await markAllAsRead();
             loadNotifications();
         }
     });

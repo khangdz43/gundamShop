@@ -109,7 +109,10 @@ document.addEventListener("DOMContentLoaded", function() {
         return;
     }
     
-    new Chart(ctx, {
+    const getChartColor = () => document.documentElement.classList.contains('light-theme') ? '#334155' : '#f0f0f0';
+    const getBorderColor = () => document.documentElement.classList.contains('light-theme') ? '#e2e8f0' : '#111';
+
+    const chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Đã bán (Đã giao)', 'Chưa bán (Chờ/Hủy/Khác)'],
@@ -117,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 data: [sold, unsold],
                 backgroundColor: ['#28a745', '#dc3545'],
                 borderWidth: 1,
-                borderColor: '#111'
+                borderColor: getBorderColor()
             }]
         },
         options: {
@@ -126,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#f0f0f0',
+                        color: getChartColor(),
                         boxWidth: 12,
                         font: {
                             size: 11
@@ -136,6 +139,18 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
     });
+
+    // Lắng nghe sự kiện chuyển đổi theme để cập nhật biểu đồ thời gian thực
+    const themeToggleBtn = document.querySelector('.theme-toggle');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function() {
+            setTimeout(() => {
+                chart.data.datasets[0].borderColor = getBorderColor();
+                chart.options.plugins.legend.labels.color = getChartColor();
+                chart.update();
+            }, 100);
+        });
+    }
 });
 </script>
 

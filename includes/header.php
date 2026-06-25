@@ -62,10 +62,10 @@ if (isLoggedIn() && !isAdmin()) {
                 <div class="notification-dropdown-container" style="position:relative; display:inline-block;">
                     <button type="button" class="btn-header btn-notification" id="notificationBell" style="position:relative; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: var(--text-main); width:42px; height:42px; display:inline-flex; align-items:center; justify-content:center; border-radius:var(--radius-md); padding:0; cursor:pointer;">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationBadge" style="display:none; position:absolute; top:-5px; right:-5px; background:var(--primary-red); color:white; border-radius:50%; width:18px; height:18px; font-size:10px; font-weight:bold; display:flex; align-items:center; justify-content:center; box-shadow:0 0 5px rgba(255,0,0,0.5);">0</span>
+                        <span class="notification-badge" id="notificationBadge" style="display:none; position:absolute; top:-5px; right:-5px; background:var(--primary-red); color:white; border-radius:50%; width:18px; height:18px; font-size:10px; font-weight:bold; align-items:center; justify-content:center; box-shadow:0 0 5px rgba(255,0,0,0.5);">0</span>
                     </button>
                     <div class="dropdown-menu notification-menu" id="notificationDropdown" style="display:none; position:absolute; right:0; top:120%; width:320px; max-height:400px; overflow-y:auto; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); box-shadow:var(--shadow-main); z-index:1000; padding:10px 0; opacity:1; visibility:visible; transform:none;">
-                        <div style="padding:10px 15px; border-bottom:1px solid var(--border-color); font-weight:bold; color:white; display:flex; justify-content:space-between; align-items:center; font-family:'Outfit';">
+                        <div class="notification-dropdown-header" style="padding:10px 15px; border-bottom:1px solid var(--border-color); font-weight:bold; color:var(--text-main); display:flex; justify-content:space-between; align-items:center; font-family:'Outfit';">
                             <span>Thông báo mới</span>
                         </div>
                         <div id="notificationList" style="max-height:300px; overflow-y:auto;">

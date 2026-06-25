@@ -7,8 +7,6 @@ require_once '../includes/auth.php';
 requireAdmin();
 
 $basePath = '../';
-$config   = require_once '../config/gemini.php';
-
 // ====== Thu thập dữ liệu kinh doanh để inject vào context ======
 // Doanh thu 30 ngày qua
 $revenue30 = $conn->query("SELECT COALESCE(SUM(total),0) as rev, COUNT(*) as cnt FROM orders WHERE status NOT IN ('cancelled') AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetch_assoc();
@@ -176,7 +174,7 @@ include '../includes/header.php';
 
 .ai-bubble p { margin: 0; }
 .ai-bubble p + p { margin-top: 8px; }
-.ai-bubble strong { color: white; }
+.ai-bubble strong { color: var(--text-main); font-weight: 700; }
 .ai-bubble ul, .ai-bubble ol { margin: 8px 0; padding-left: 20px; }
 .ai-bubble li { margin: 4px 0; }
 .ai-bubble h3, .ai-bubble h4 { color: #7da7ff; margin: 12px 0 6px; }

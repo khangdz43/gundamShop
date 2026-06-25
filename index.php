@@ -107,7 +107,7 @@ include "includes/header.php";
 <section id="sale" class="category-section" style="background: rgba(220, 38, 38, 0.04); padding: 60px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
     <div class="container">
         <div style="text-align: center; margin-bottom: 40px;">
-            <h2 class="page-title" style="background: linear-gradient(90deg, var(--text-white), var(--primary-red)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KHUYẾN MÃI - GIẢM GIÁ</h2>
+            <h2 class="page-title" style="background: linear-gradient(90deg, var(--text-main), var(--primary-red)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KHUYẾN MÃI - GIẢM GIÁ</h2>
             <p class="page-subtitle">Ưu đãi đặc biệt dành cho khách hàng. Đừng bỏ lỡ cơ hội sở hữu Gundam với giá tốt nhất!</p>
         </div>
 
@@ -236,12 +236,23 @@ include "includes/header.php";
 <section class="stats-section">
     <div class="container">
         <div class="admin-stats" style="margin-bottom: 0;">
+            <?php
+            // Lấy số lượng sản phẩm thật
+            $sql_prod_count = "SELECT COUNT(*) as count FROM products WHERE status = 'active'";
+            $result_prod_count = mysqli_query($conn, $sql_prod_count);
+            $actual_prod_count = $result_prod_count ? mysqli_fetch_assoc($result_prod_count)['count'] : 0;
+
+            // Lấy số lượng khách hàng thật
+            $sql_cust_count = "SELECT COUNT(*) as count FROM users WHERE role = 'user'";
+            $result_cust_count = mysqli_query($conn, $sql_cust_count);
+            $actual_cust_count = $result_cust_count ? mysqli_fetch_assoc($result_cust_count)['count'] : 0;
+            ?>
             <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
-                <div class="stat-value" style="font-size: 3rem;">500+</div>
+                <div class="stat-value" style="font-size: 3rem;"><?= number_format($actual_prod_count) ?></div>
                 <div class="stat-label" style="justify-content: center;">Sản Phẩm</div>
             </div>
             <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
-                <div class="stat-value" style="font-size: 3rem;">10.000+</div>
+                <div class="stat-value" style="font-size: 3rem;"><?= number_format($actual_cust_count) ?></div>
                 <div class="stat-label" style="justify-content: center;">Khách Hàng</div>
             </div>
             <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">

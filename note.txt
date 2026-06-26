@@ -1,0 +1,11 @@
+
+người dùng chưa hủy được đơn , chỗ sản phẩn lọc giá khó nhìn khi theme sáng , theme sáng các chỗ đang hơi xấu , AI chiến lược cho admin bị lỗi do chưa hiể thị hết message , chưa đăng nhập mà thêm giỏ hàng ra url sai , 
+nghiệp vụ đổi và trả khác nhau , cần lí do , ảnh hoặc video , admin có thể chấp nhận đổi trả nghiệp hoàn tiền các kiểu , số lượng đã bán , thông tin mô tả sản phẩm phải có năm sản xuất ....
+
+khi admin hủy hàng hay thay đổi status thì phải tưj thông báo cho user , thêm add mã giảm giá ,   mức độ hài lòng tính bằng số sao phản hồi , chế độ ngôn ngữ tiếng việt và tiếng anh 
+
+nghiệp vụ bên vận chuyển nữa sẽ là 1 web riêng db riêng , cho các shipper cũng như các nhà vận chuyển nửa 
+
+
+Fatal error: Uncaught mysqli_sql_exception: Unknown column 'type' in 'field list' in C:\xampp\htdocs\KNOWLEDGE IT\BÁO CÁO TTDN-MINH\GUNDAM\includes\functions.php:108 Stack trace: #0 C:\xampp\htdocs\KNOWLEDGE IT\BÁO CÁO TTDN-MINH\GUNDAM\includes\functions.php(108): mysqli->prepare('INSERT INTO not...') #1 C:\xampp\htdocs\KNOWLEDGE IT\BÁO CÁO TTDN-MINH\GUNDAM\includes\functions.php(128): sendUserNotification(Object(mysqli), 2, '\xC4\x90\xC6\xA1n h\xC3\xA0ng \xC4\x91\xC3...', '\xC4\x90\xC6\xA1n h\xC3\xA0ng #GD...', 'warning') #2 C:\xampp\htdocs\KNOWLEDGE IT\BÁO CÁO TTDN-MINH\GUNDAM\admin\order_detail.php(29): notifyOrderStatusChange(Object(mysqli), Array, 'pending', 'cancelled') #3 {main} thrown in C:\xampp\htdocs\KNOWLEDGE IT\BÁO CÁO TTDN-MINH\GUNDAM\includes\functions.php on line 108  ,  ngôn ngữ làm lại ngay có ô chọn VN hay englissh và toàn bộ trang phải sagn tiếng anh hay tiếng việt có thể dùng api miễn phí của gg translate
+

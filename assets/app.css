@@ -45,6 +45,7 @@ html.light-theme {
     --bg-footer: #0f172a;
     --text-main: #1e293b;
     --text-muted: #64748b;
+    --text-white: #1e293b;
     --border-color: rgba(15, 23, 42, 0.08);
     --border-color-hover: rgba(15, 23, 42, 0.16);
     --shadow-main: 0 10px 30px rgba(15, 23, 42, 0.05);
@@ -2043,12 +2044,16 @@ html.light-theme .btn-blue,
 html.light-theme .btn-red,
 html.light-theme .btn-primary,
 html.light-theme .btn-admin,
-html.light-theme .btn-header:hover,
 html.light-theme .hero-btn,
 html.light-theme .btn-cart-add,
 html.light-theme .btn-detail:hover,
-html.light-theme button[type="submit"] {
-    color: #3d2828 !important;
+html.light-theme #sendBtn,
+html.light-theme button[type="submit"].btn-blue {
+    color: #ffffff !important;
+}
+
+html.light-theme .btn-header:hover {
+    color: #ffffff !important;
 }
 
 /* Unified admin navbar */
@@ -2185,6 +2190,26 @@ html.light-theme .notification-item [style*="font-weight: bold"] {
 
 html.light-theme .ai-bubble strong {
     color: var(--text-main) !important;
+}
+
+html.light-theme .summary-row strong,
+html.light-theme .checkout-item-name,
+html.light-theme .page-title,
+html.light-theme .card h2,
+html.light-theme .data-table td,
+html.light-theme .data-table th,
+html.light-theme .stat-value,
+html.light-theme .alert {
+    color: var(--text-main) !important;
+}
+
+html.light-theme .lang-switcher .btn-header {
+    color: var(--text-main) !important;
+}
+
+html.light-theme .lang-switcher .btn-header.active-lang {
+    background: var(--primary-blue);
+    color: #ffffff !important;
 }
 
 html.light-theme .qr-section-title,

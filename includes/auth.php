@@ -7,6 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/lang.php';
 require_once __DIR__ . '/functions.php';
 
 define('REMEMBER_COOKIE', 'gs_remember');

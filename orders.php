@@ -77,34 +77,34 @@ $monthLabels = [
     '09' => 'T9', '10' => 'T10', '11' => 'T11', '12' => 'T12'
 ];
 
-$pageTitle = 'Đơn hàng của tôi - Gundam Store';
+$pageTitle = __('my_orders') . ' - Gundam Store';
 include 'includes/header.php';
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="container">
-    <h1 class="page-title">ĐƠN HÀNG CỦA TÔI</h1>
+    <h1 class="page-title"><?php echo strtoupper(__('my_orders')); ?></h1>
 
     <!-- Thống kê chi tiêu -->
     <div class="admin-stats" style="margin-bottom:24px;">
         <div class="stat-card green">
-            <div class="stat-label"><i class="fas fa-wallet"></i> Tổng chi tiêu</div>
+            <div class="stat-label"><i class="fas fa-wallet"></i> <?php echo __('total_spending'); ?></div>
             <div class="stat-value" style="font-size:1.3rem;"><?php echo formatPrice($totalSpent); ?></div>
         </div>
         <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-calendar-alt"></i> Tháng này</div>
+            <div class="stat-label"><i class="fas fa-calendar-alt"></i> <?php echo __('this_month'); ?></div>
             <div class="stat-value" style="font-size:1.3rem;"><?php echo formatPrice($thisMonthSpent); ?></div>
         </div>
         <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-receipt"></i> Tổng đơn hàng</div>
-            <div class="stat-value"><?php echo $totalOrderCount; ?><?php if ($statusFilter || $monthFilter || $search): ?><small style="font-size:0.55em;color:var(--text-muted);display:block;"><?php echo count($orders); ?> kết quả lọc</small><?php endif; ?></div>
+            <div class="stat-label"><i class="fas fa-receipt"></i> <?php echo __('total_orders'); ?></div>
+            <div class="stat-value"><?php echo $totalOrderCount; ?><?php if ($statusFilter || $monthFilter || $search): ?><small style="font-size:0.55em;color:var(--text-muted);display:block;"><?php echo sprintf(__('filter_results'), count($orders)); ?></small><?php endif; ?></div>
         </div>
     </div>
 
     <?php if (!empty($monthlyStats)): ?>
     <div class="card" style="margin-bottom:24px;">
-        <h2 style="margin-top:0;font-size:1.1rem;"><i class="fas fa-chart-bar"></i> Chi tiêu theo tháng (6 tháng gần nhất)</h2>
+        <h2 style="margin-top:0;font-size:1.1rem;"><i class="fas fa-chart-bar"></i> <?php echo __('monthly_spending'); ?></h2>
         <canvas id="spendingChart" height="100"></canvas>
     </div>
     <?php endif; ?>
@@ -113,13 +113,13 @@ include 'includes/header.php';
     <div class="card" style="margin-bottom:20px;padding:16px 20px;">
         <form method="GET" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
             <div class="form-group" style="margin:0;flex:1;min-width:180px;">
-                <label style="font-size:0.85rem;color:var(--text-muted);">Tìm mã đơn</label>
+                <label style="font-size:0.85rem;color:var(--text-muted);"><?php echo __('search_order'); ?></label>
                 <input type="text" name="search" class="form-control" placeholder="VD: GD250625..." value="<?php echo htmlspecialchars($search); ?>">
             </div>
             <div class="form-group" style="margin:0;min-width:160px;">
-                <label style="font-size:0.85rem;color:var(--text-muted);">Tháng</label>
+                <label style="font-size:0.85rem;color:var(--text-muted);"><?php echo __('month'); ?></label>
                 <select name="month" class="form-control">
-                    <option value="">Tất cả tháng</option>
+                    <option value=""><?php echo __('all_months'); ?></option>
                     <?php for ($i = 0; $i < 12; $i++):
                         $m = date('Y-m', strtotime("-$i months"));
                         $parts = explode('-', $m);
@@ -129,12 +129,18 @@ include 'includes/header.php';
                     <?php endfor; ?>
                 </select>
             </div>
-            <?php if ($statusFilter): ?>
-            <input type="hidden" name="status" value="<?php echo htmlspecialchars($statusFilter); ?>">
-            <?php endif; ?>
-            <button type="submit" class="btn btn-blue btn-sm"><i class="fas fa-search"></i> Lọc</button>
+            <div class="form-group" style="margin:0;min-width:140px;">
+                <label style="font-size:0.85rem;color:var(--text-muted);"><?php echo __('status'); ?></label>
+                <select name="status" class="form-control">
+                    <option value=""><?php echo __('all'); ?></option>
+                    <?php foreach (['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'] as $s): ?>
+                    <option value="<?php echo $s; ?>" <?php echo $statusFilter === $s ? 'selected' : ''; ?>><?php echo getOrderStatusLabel($s); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-blue btn-sm"><i class="fas fa-search"></i> <?php echo __('filter'); ?></button>
             <?php if ($search || $monthFilter || $statusFilter): ?>
-            <a href="orders.php" class="btn btn-gray btn-sm"><i class="fas fa-times"></i> Xóa lọc</a>
+            <a href="orders.php" class="btn btn-gray btn-sm"><i class="fas fa-times"></i> <?php echo __('clear_filter'); ?></a>
             <?php endif; ?>
         </form>
     </div>
@@ -147,7 +153,7 @@ include 'includes/header.php';
         $baseQuery = http_build_query($filterParams);
         $allUrl = 'orders.php' . ($baseQuery ? '?' . $baseQuery : '');
         ?>
-        <a href="<?php echo $allUrl; ?>" class="btn <?php echo !$statusFilter ? 'btn-blue' : 'btn-gray'; ?> btn-sm">Tất cả</a>
+        <a href="<?php echo $allUrl; ?>" class="btn <?php echo !$statusFilter ? 'btn-blue' : 'btn-gray'; ?> btn-sm"><?php echo __('all'); ?></a>
         <?php foreach (['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'] as $s):
             $q = array_merge($filterParams, ['status' => $s]);
             $url = 'orders.php?' . http_build_query($q);
@@ -159,19 +165,19 @@ include 'includes/header.php';
     <?php if (empty($orders)): ?>
         <div class="card" style="text-align:center;padding:50px">
             <i class="fas fa-receipt" style="font-size:3rem;color:var(--text-muted);margin-bottom:15px"></i>
-            <p><?php echo ($statusFilter || $monthFilter || $search) ? 'Không tìm thấy đơn hàng phù hợp.' : 'Bạn chưa có đơn hàng nào.'; ?></p>
-            <a href="products.php" class="btn btn-blue" style="margin-top:15px">Mua sắm ngay</a>
+            <p><?php echo ($statusFilter || $monthFilter || $search) ? __('no_orders_filter') : __('no_orders'); ?></p>
+            <a href="products.php" class="btn btn-blue" style="margin-top:15px"><?php echo __('shop_now'); ?></a>
         </div>
     <?php else: ?>
         <div class="card" style="overflow-x:auto">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Mã đơn</th>
-                        <th>Ngày đặt</th>
-                        <th>Tổng tiền</th>
-                        <th>Thanh toán</th>
-                        <th>Trạng thái</th>
+                        <th><?php echo __('order_code'); ?></th>
+                        <th><?php echo __('order_date'); ?></th>
+                        <th><?php echo __('total'); ?></th>
+                        <th><?php echo __('payment'); ?></th>
+                        <th><?php echo __('status'); ?></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -183,7 +189,7 @@ include 'includes/header.php';
                         <td><?php echo formatPrice($order['total']); ?></td>
                         <td><?php echo $order['payment_method'] === 'cod' ? 'COD' : 'Chuyển khoản'; ?></td>
                         <td><span class="status-badge <?php echo getOrderStatusClass($order['status']); ?>"><?php echo getOrderStatusLabel($order['status']); ?></span></td>
-                        <td><a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-blue btn-sm">Chi tiết</a></td>
+                        <td><a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-blue btn-sm"><?php echo __('detail'); ?></a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

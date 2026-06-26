@@ -15,11 +15,19 @@ if (!$order) redirect('orders.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'])) {
     $newStatus = $_POST['status'];
-    if (in_array($newStatus, ['pending','confirmed','shipping','delivered','cancelled'])) {
+    $oldStatus = $order['status'];
+    if (in_array($newStatus, ['pending','confirmed','shipping','delivered','cancelled'], true) && $newStatus !== $oldStatus) {
         $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $newStatus, $orderId);
         $stmt->execute();
         $stmt->close();
+
+        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+            restockOrderItems($conn, $orderId);
+        }
+
+        notifyOrderStatusChange($conn, $order, $oldStatus, $newStatus);
+
         setFlash('order', 'Cập nhật trạng thái thành công');
         redirect('order_detail.php?id=' . $orderId);
     }

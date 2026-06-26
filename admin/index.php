@@ -17,6 +17,8 @@ $stats['pending'] = $r->fetch_assoc()['c'];
 $r = $conn->query("SELECT COALESCE(SUM(total),0) as t FROM orders WHERE status != 'cancelled'");
 $stats['revenue'] = $r->fetch_assoc()['t'];
 
+$reviewStats = getAverageReviewRating($conn);
+
 // Recent orders
 $recentOrders = $conn->query("SELECT o.*, u.username FROM orders o JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC LIMIT 5")->fetch_all(MYSQLI_ASSOC);
 
@@ -54,6 +56,15 @@ include '../includes/header.php';
         <div class="stat-card green">
             <div class="stat-label"><i class="fas fa-dollar-sign"></i> Doanh thu</div>
             <div class="stat-value" style="font-size:1.4rem"><?php echo formatPrice($stats['revenue']); ?></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label"><i class="fas fa-star"></i> <?php echo __('satisfaction'); ?></div>
+            <div class="stat-value" style="font-size:1.4rem;">
+                <?php echo $reviewStats['avg']; ?>/5
+                <small style="display:block;font-size:0.55em;color:var(--text-muted);font-weight:400;">
+                    <?php echo $reviewStats['count']; ?> <?php echo __('stars'); ?> · <?php echo __('reviews_avg'); ?>
+                </small>
+            </div>
         </div>
     </div>
 

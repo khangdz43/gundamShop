@@ -220,7 +220,7 @@ html.light-theme .suggestion-chip:hover {
 <script>
 var chatHistory = [];
 var contextData = <?php echo json_encode($contextData, JSON_UNESCAPED_UNICODE); ?>;
-var basePath    = document.body.dataset.basePath || '';
+var adminAiApiUrl = '../api/admin_ai_chat.php';
 
 function insertSuggestion(text) {
     // Remove emoji from text
@@ -304,11 +304,16 @@ async function sendAdminAI() {
             context: contextData
         };
 
-        var resp = await fetch(basePath + 'api/admin_ai_chat.php', {
+        var resp = await fetch(adminAiApiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            credentials: 'same-origin'
         });
+
+        if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+        }
 
         var data = await resp.json();
         removeTyping();

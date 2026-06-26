@@ -324,6 +324,7 @@ function initNotifications() {
     if (!bell || !dropdown || !list || !badge) return;
 
     let unreadCount = 0;
+    let dropdownOpen = false;
 
     function resetBadge() {
         unreadCount = 0;
@@ -332,7 +333,6 @@ function initNotifications() {
     }
 
     async function markAllAsRead() {
-        if (unreadCount <= 0) return;
         try {
             const res = await fetch(base + 'api/notifications.php?action=mark_all_read', { method: 'POST' });
             const data = await res.json();
@@ -347,12 +347,14 @@ function initNotifications() {
             const res = await fetch(base + 'api/notifications.php?action=list');
             const data = await res.json();
             
-            unreadCount = data.unread_count;
-            if (unreadCount > 0) {
+            unreadCount = data.unread_count || 0;
+
+            // Đã mở dropdown = coi như đã đọc, không hiện số
+            if (dropdownOpen || unreadCount <= 0) {
+                resetBadge();
+            } else {
                 badge.textContent = unreadCount;
                 badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
             }
 
             if (!data.notifications || data.notifications.length === 0) {
@@ -361,7 +363,7 @@ function initNotifications() {
             }
 
             list.innerHTML = data.notifications.map(notif => {
-                const isUnread = notif.is_read === 0;
+                const isUnread = dropdownOpen ? false : (notif.is_read === 0);
                 const dotHtml = isUnread ? `<span class="unread-dot" style="width: 8px; height: 8px; background: var(--primary-blue); border-radius: 50%; display: inline-block;"></span>` : '';
                 const titleColor = isUnread ? 'var(--text-main)' : 'var(--text-muted)';
                 const titleWeight = isUnread ? 'bold' : 'normal';
@@ -377,17 +379,15 @@ function initNotifications() {
                             ${dotHtml}
                         </div>
                         <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4; white-space: normal; word-break: break-word;">${notif.message}</div>
-                        <div style="font-size: 0.75rem; color: #666; margin-top: 6px; text-align: right;">${notif.created_at}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; text-align: right;">${notif.created_at}</div>
                     </div>
                 `;
             }).join('');
 
-            // Bind click events
             list.querySelectorAll('.notification-item').forEach(item => {
                 item.addEventListener('click', async () => {
                     const id = item.dataset.id;
                     if (item.classList.contains('unread')) {
-                        // Mark as read in DB
                         try {
                             const postRes = await fetch(base + 'api/notifications.php?action=mark_read', {
                                 method: 'POST',
@@ -404,15 +404,7 @@ function initNotifications() {
                                     titleSpan.style.color = 'var(--text-muted)';
                                     titleSpan.style.fontWeight = 'normal';
                                 }
-                                
-                                // Update badge
-                                unreadCount = Math.max(0, unreadCount - 1);
-                                if (unreadCount > 0) {
-                                    badge.textContent = unreadCount;
-                                    badge.style.display = 'flex';
-                                } else {
-                                    badge.style.display = 'none';
-                                }
+                                resetBadge();
                             }
                         } catch (e) {
                             console.error("Lỗi khi đánh dấu đã đọc:", e);
@@ -426,28 +418,30 @@ function initNotifications() {
         }
     }
 
-    // Toggle dropdown
     bell.addEventListener('click', async (e) => {
         e.stopPropagation();
         const isOpen = dropdown.style.display === 'block';
         dropdown.style.display = isOpen ? 'none' : 'block';
+        dropdownOpen = !isOpen;
+
         if (!isOpen) {
+            resetBadge();
             await markAllAsRead();
-            loadNotifications();
+            await loadNotifications();
         }
     });
 
-    // Close when clicking outside
     document.addEventListener('click', (e) => {
         if (!dropdown.contains(e.target) && !bell.contains(e.target)) {
             dropdown.style.display = 'none';
+            dropdownOpen = false;
         }
     });
 
-    // Initial load
     loadNotifications();
-    // Poll every 30 seconds for new notifications
-    setInterval(loadNotifications, 30000);
+    setInterval(() => {
+        if (!dropdownOpen) loadNotifications();
+    }, 30000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

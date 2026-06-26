@@ -26,7 +26,15 @@ if (!function_exists('adminNavActive')) {
         </nav>
 
         <div class="header-actions admin-header-actions">
-            <button type="button" class="theme-toggle" title="Chuyển đổi chủ đề" aria-label="Chuyển đổi chủ đề">
+            <div class="lang-switcher" style="display:inline-flex;gap:4px;">
+                <?php
+                $curLang = currentLang();
+                $langBase = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
+                ?>
+                <a href="<?php echo htmlspecialchars($langBase); ?>?lang=vi" class="btn-header <?php echo $curLang === 'vi' ? 'active-lang' : ''; ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">VI</a>
+                <a href="<?php echo htmlspecialchars($langBase); ?>?lang=en" class="btn-header <?php echo $curLang === 'en' ? 'active-lang' : ''; ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">EN</a>
+            </div>
+            <button type="button" class="theme-toggle" title="<?php echo __('theme_toggle'); ?>" aria-label="<?php echo __('theme_toggle'); ?>">
                 <i class="fas fa-sun"></i>
             </button>
             
@@ -76,7 +84,13 @@ if (!function_exists('adminNavActive')) {
 
             <?php if (hasPermission('notifications')): ?>
             <a href="<?php echo $adminBasePath; ?>admin/send_notification.php" class="btn-header<?php echo in_array($currentAdminPage, ['send_notification.php']) ? ' active' : ''; ?>">
-                <i class="fas fa-paper-plane"></i> Gửi TB
+                <i class="fas fa-paper-plane"></i> <?php echo __('send_notif'); ?>
+            </a>
+            <?php endif; ?>
+
+            <?php if (isAdmin()): ?>
+            <a href="<?php echo $adminBasePath; ?>admin/coupons.php" class="btn-header<?php echo in_array($currentAdminPage, ['coupons.php']) ? ' active' : ''; ?>">
+                <i class="fas fa-ticket-alt"></i> <?php echo __('coupons'); ?>
             </a>
             <?php endif; ?>
 

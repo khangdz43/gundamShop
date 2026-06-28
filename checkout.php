@@ -4,26 +4,43 @@ requireLogin();
 
 if (isAdmin()) redirect('admin/index.php');
 
+ensureCartSelectedColumn($conn);
+
 $userId = getUserId();
 $user = getCurrentUser($conn);
 
-// Get cart
-$stmt = $conn->prepare("SELECT c.*, p.name, p.price, p.image, p.stock 
-    FROM cart c JOIN products p ON c.product_id = p.id WHERE c.user_id = ?");
-$stmt->bind_param("i", $userId);
+$cartIdsParam = $_GET['ids'] ?? $_POST['cart_ids'] ?? '';
+$cartIds = array_filter(array_map('intval', explode(',', $cartIdsParam)));
+
+if (!empty($cartIds)) {
+    $placeholders = implode(',', array_fill(0, count($cartIds), '?'));
+    $types = str_repeat('i', count($cartIds)) . 'i';
+    $params = array_merge($cartIds, [$userId]);
+    $stmt = $conn->prepare("SELECT c.*, p.name, p.price, p.image, p.stock 
+        FROM cart c JOIN products p ON c.product_id = p.id 
+        WHERE c.id IN ($placeholders) AND c.user_id = ?");
+    $stmt->bind_param($types, ...$params);
+} else {
+    $stmt = $conn->prepare("SELECT c.*, p.name, p.price, p.image, p.stock 
+        FROM cart c JOIN products p ON c.product_id = p.id 
+        WHERE c.user_id = ? AND c.selected = 1");
+    $stmt->bind_param("i", $userId);
+}
 $stmt->execute();
 $cartItems = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 if (empty($cartItems)) {
-    setFlash('checkout', 'Giỏ hàng trống', 'error');
+    setFlash('checkout', __('checkout_empty'), 'error');
     redirect('cart.php');
 }
+
+$checkoutCartIds = array_column($cartItems, 'id');
 
 $subtotal = 0;
 foreach ($cartItems as $item) {
     if ($item['quantity'] > $item['stock']) {
-        setFlash('checkout', 'Sản phẩm "' . $item['name'] . '" không đủ hàng', 'error');
+        setFlash('checkout', sprintf(__('checkout_stock_error'), $item['name']), 'error');
         redirect('cart.php');
     }
     $subtotal += $item['price'] * $item['quantity'];
@@ -53,10 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payment = in_array($_POST['payment_method'] ?? '', ['cod', 'bank_transfer']) ? $_POST['payment_method'] : 'cod';
     $postCoupon = strtoupper(trim($_POST['coupon_code'] ?? ''));
 
-    if (empty($fullName)) $errors[] = 'Vui lòng nhập họ tên';
-    if (empty($phone) || !preg_match('/^[0-9]{9,11}$/', $phone)) $errors[] = 'Số điện thoại không hợp lệ';
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email không hợp lệ';
-    if (empty($address)) $errors[] = 'Vui lòng nhập địa chỉ giao hàng';
+    if (empty($fullName)) $errors[] = __('err_full_name');
+    if (empty($phone) || !preg_match('/^[0-9]{9,11}$/', $phone)) $errors[] = __('err_phone');
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = __('err_email');
+    if (empty($address)) $errors[] = __('err_address');
 
     $orderDiscount = 0;
     $orderCouponCode = null;
@@ -103,8 +120,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->close();
             }
 
-            $stmt = $conn->prepare("DELETE FROM cart WHERE user_id = ?");
-            $stmt->bind_param("i", $userId);
+            $stmt = $conn->prepare("DELETE FROM cart WHERE user_id = ? AND id IN (" . implode(',', array_fill(0, count($checkoutCartIds), '?')) . ")");
+            $delTypes = 'i' . str_repeat('i', count($checkoutCartIds));
+            $delParams = array_merge([$userId], $checkoutCartIds);
+            $stmt->bind_param($delTypes, ...$delParams);
             $stmt->execute();
             $stmt->close();
 
@@ -118,17 +137,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('order_success.php?code=' . urlencode($orderCode));
         } catch (Exception $e) {
             $conn->rollback();
-            $errors[] = 'Đặt hàng thất bại: ' . $e->getMessage();
+            $errors[] = sprintf(__('order_failed'), $e->getMessage());
         }
     }
 }
 
-$pageTitle = 'Thanh toán - Gundam Store';
+$pageTitle = __('checkout_title') . ' - Gundam Store';
 include 'includes/header.php';
 ?>
 
 <div class="container">
-    <h1 class="page-title">THANH TOÁN</h1>
+    <h1 class="page-title"><?php echo __('checkout_title'); ?></h1>
 
     <?php foreach ($errors as $err): ?>
         <div class="alert alert-error"><?php echo htmlspecialchars($err); ?></div>
@@ -136,33 +155,34 @@ include 'includes/header.php';
 
     <div class="checkout-grid">
         <div class="card">
-            <h2 style="margin-top:0"><i class="fas fa-shipping-fast"></i> Thông tin giao hàng</h2>
+            <h2 style="margin-top:0"><i class="fas fa-shipping-fast"></i> <?php echo __('shipping_info'); ?></h2>
             <form method="POST">
+                <input type="hidden" name="cart_ids" value="<?php echo htmlspecialchars(implode(',', $checkoutCartIds)); ?>">
                 <div class="form-group">
-                    <label>Họ và tên *</label>
+                    <label><?php echo __('full_name'); ?> *</label>
                     <input type="text" name="full_name" class="form-control" required value="<?php echo htmlspecialchars($_POST['full_name'] ?? $user['full_name'] ?? ''); ?>">
                 </div>
                 <div class="form-group">
-                    <label>Số điện thoại *</label>
+                    <label><?php echo __('phone'); ?> *</label>
                     <input type="tel" name="phone" class="form-control" required value="<?php echo htmlspecialchars($_POST['phone'] ?? $user['phone'] ?? ''); ?>">
                 </div>
                 <div class="form-group">
-                    <label>Email *</label>
+                    <label><?php echo __('email'); ?> *</label>
                     <input type="email" name="email" class="form-control" required value="<?php echo htmlspecialchars($_POST['email'] ?? $user['email'] ?? ''); ?>">
                 </div>
                 <div class="form-group">
-                    <label>Địa chỉ giao hàng *</label>
+                    <label><?php echo __('address'); ?> *</label>
                     <textarea name="address" class="form-control" rows="3" required><?php echo htmlspecialchars($_POST['address'] ?? $user['address'] ?? ''); ?></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Ghi chú</label>
+                    <label><?php echo __('note'); ?></label>
                     <textarea name="note" class="form-control" rows="2"><?php echo htmlspecialchars($_POST['note'] ?? ''); ?></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Phương thức thanh toán</label>
+                    <label><?php echo __('payment_method'); ?></label>
                     <select name="payment_method" class="form-control">
-                        <option value="cod">Thanh toán khi nhận hàng (COD)</option>
-                        <option value="bank_transfer">Chuyển khoản ngân hàng</option>
+                        <option value="cod"><?php echo __('payment_cod'); ?></option>
+                        <option value="bank_transfer"><?php echo __('payment_bank'); ?></option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -173,12 +193,12 @@ include 'includes/header.php';
                     </div>
                     <div id="couponMessage" style="margin-top:6px;font-size:0.85rem;color:var(--text-muted);"></div>
                 </div>
-                <button type="submit" class="btn btn-blue" style="width:100%"><i class="fas fa-check"></i> Xác nhận đặt hàng</button>
+                <button type="submit" class="btn btn-blue" style="width:100%"><i class="fas fa-check"></i> <?php echo __('confirm_order'); ?></button>
             </form>
         </div>
 
         <div class="card">
-            <h2 style="margin-top:0; border-bottom: 2px solid var(--primary-blue); padding-bottom: 12px;">Đơn hàng (<?php echo count($cartItems); ?> SP)</h2>
+            <h2 style="margin-top:0; border-bottom: 2px solid var(--primary-blue); padding-bottom: 12px;"><?php echo sprintf(__('order_items'), count($cartItems)); ?></h2>
             <?php foreach ($cartItems as $item): ?>
             <div class="checkout-item">
                 <img src="assets/images/<?php echo htmlspecialchars($item['image'] ?: 'LOGO.jpg'); ?>" class="checkout-item-img" onerror="this.src='assets/images/LOGO.jpg'">

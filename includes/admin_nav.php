@@ -29,10 +29,9 @@ if (!function_exists('adminNavActive')) {
             <div class="lang-switcher" style="display:inline-flex;gap:4px;">
                 <?php
                 $curLang = currentLang();
-                $langBase = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
                 ?>
-                <a href="<?php echo htmlspecialchars($langBase); ?>?lang=vi" class="btn-header <?php echo $curLang === 'vi' ? 'active-lang' : ''; ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">VI</a>
-                <a href="<?php echo htmlspecialchars($langBase); ?>?lang=en" class="btn-header <?php echo $curLang === 'en' ? 'active-lang' : ''; ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">EN</a>
+                <a href="<?php echo htmlspecialchars(langUrl('vi')); ?>" class="btn-header <?php echo $curLang === 'vi' ? 'active-lang' : ''; ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">VI</a>
+                <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header <?php echo $curLang === 'en' ? 'active-lang' : ''; ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">EN</a>
             </div>
             <button type="button" class="theme-toggle" title="<?php echo __('theme_toggle'); ?>" aria-label="<?php echo __('theme_toggle'); ?>">
                 <i class="fas fa-sun"></i>

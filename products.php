@@ -23,18 +23,18 @@ if (!empty($search)) {
     $searchParam = '%' . $search . '%';
     $params      = array_merge($params, [$searchParam, $searchParam, $searchParam, $searchParam]);
     $types      .= 'ssss';
-    $page_title  = 'Kết quả tìm kiếm: "' . htmlspecialchars($search) . '"';
+    $page_title  = sprintf(__('search_results'), htmlspecialchars($search));
 }
 
 if (!empty($type_filter)) {
     if ($type_filter == 'SALE') {
         $where[]    = "is_sale = 1 AND old_price IS NOT NULL";
-        $page_title = $page_title ?? "Sản phẩm đang giảm giá";
+        $page_title = $page_title ?? __('products_on_sale');
     } else {
         $where[]  = "type = ?";
         $params[] = $type_filter;
         $types   .= 's';
-        $page_title = $page_title ?? "Sản phẩm phân khúc " . $type_filter;
+        $page_title = $page_title ?? sprintf(__('products_type'), $type_filter);
     }
 }
 
@@ -50,7 +50,7 @@ if ($price_max !== null) {
     $types   .= 'i';
 }
 
-$page_title  = $page_title ?? "Tất cả sản phẩm";
+$page_title  = $page_title ?? __('all_products');
 $whereClause = implode(' AND ', $where);
 
 // Sắp xếp
@@ -93,14 +93,14 @@ include 'includes/header.php';
     <!-- Page Header -->
     <div style="margin-bottom: 30px;">
         <a href="index.php" class="btn btn-gray btn-sm" style="display: inline-flex; align-items: center; gap: 8px;">
-            <i class="fas fa-arrow-left"></i> Quay lại trang chủ
+            <i class="fas fa-arrow-left"></i> <?php echo __('back_home'); ?>
         </a>
         <h1 class="page-title" style="text-align: left; margin: 25px 0 10px;"><?php echo $page_title; ?></h1>
         <p class="page-subtitle" style="text-align: left; margin-bottom: 20px;">
             <?php if(!empty($type_filter)): ?>
-                Khám phá bộ sưu tập <?php echo htmlspecialchars($type_filter); ?> chính hãng từ Bandai Spirits Nhật Bản.
+                <?php echo sprintf(__('explore_type'), htmlspecialchars($type_filter)); ?>
             <?php else: ?>
-                Toàn bộ mô hình Gundam chính hãng từ các phân khúc HG, MG, RG, PG và SD.
+                <?php echo __('explore_all'); ?>
             <?php endif; ?>
         </p>
     </div>
@@ -114,7 +114,7 @@ include 'includes/header.php';
             
             <!-- Lọc theo phân khúc -->
             <div class="filter-section">
-                <div class="filter-section-title"><i class="fas fa-layer-group"></i> Phân khúc</div>
+                <div class="filter-section-title"><i class="fas fa-layer-group"></i> <?php echo __('filter_segment'); ?></div>
                 <?php
                 $count_sql    = "SELECT type, COUNT(*) as count FROM products WHERE status = 'active' GROUP BY type";
                 $count_result = mysqli_query($conn, $count_sql);
@@ -128,14 +128,14 @@ include 'includes/header.php';
                 $total_all   = array_sum($counts);
                 
                 $types_list = [
-                    '' => ['label' => 'Tất cả', 'icon' => 'fas fa-boxes', 'count' => $total_all],
+                    '' => ['label' => __('type_all'), 'icon' => 'fas fa-boxes', 'count' => $total_all],
                     'HG'   => ['label' => 'High Grade (HG)',   'icon' => 'fas fa-cube',      'count' => $counts['HG'] ?? 0],
                     'MG'   => ['label' => 'Master Grade (MG)', 'icon' => 'fas fa-cubes',     'count' => $counts['MG'] ?? 0],
                     'RG'   => ['label' => 'Real Grade (RG)',   'icon' => 'fas fa-gem',       'count' => $counts['RG'] ?? 0],
                     'PG'   => ['label' => 'Perfect Grade (PG)','icon' => 'fas fa-crown',     'count' => $counts['PG'] ?? 0],
                     'SD'   => ['label' => 'Super Deformed (SD)','icon' => 'fas fa-baby',     'count' => $counts['SD'] ?? 0],
                     'MGEX' => ['label' => 'MGEX',              'icon' => 'fas fa-star',      'count' => $counts['MGEX'] ?? 0],
-                    'SALE' => ['label' => 'Đang giảm giá 🔥',  'icon' => 'fas fa-fire',     'count' => $sale_count],
+                    'SALE' => ['label' => __('filter_on_sale') . ' 🔥',  'icon' => 'fas fa-fire',     'count' => $sale_count],
                 ];
                 foreach ($types_list as $val => $info):
                     $active = ($type_filter === $val) ? 'active' : '';
@@ -151,15 +151,15 @@ include 'includes/header.php';
 
             <!-- Lọc theo giá -->
             <div class="filter-section">
-                <div class="filter-section-title"><i class="fas fa-tag"></i> Khoảng giá</div>
+                <div class="filter-section-title"><i class="fas fa-tag"></i> <?php echo __('filter_price'); ?></div>
                 
                 <!-- Preset nhanh -->
                 <div class="price-presets">
-                    <button type="button" class="price-preset <?php echo ($price_min===null && $price_max===null && empty($type_filter===false)) ? '' : ''; ?>" onclick="setPreset(0, 0)">Tất cả</button>
-                    <button type="button" class="price-preset" onclick="setPreset(0, 500000)">Dưới 500k</button>
-                    <button type="button" class="price-preset" onclick="setPreset(500000, 1000000)">500k – 1tr</button>
-                    <button type="button" class="price-preset" onclick="setPreset(1000000, 2000000)">1tr – 2tr</button>
-                    <button type="button" class="price-preset" onclick="setPreset(2000000, 0)">Trên 2tr</button>
+                    <button type="button" class="price-preset <?php echo ($price_min===null && $price_max===null && empty($type_filter===false)) ? '' : ''; ?>" onclick="setPreset(0, 0)"><?php echo __('price_all'); ?></button>
+                    <button type="button" class="price-preset" onclick="setPreset(0, 500000)"><?php echo __('price_under_500k'); ?></button>
+                    <button type="button" class="price-preset" onclick="setPreset(500000, 1000000)"><?php echo __('price_500k_1m'); ?></button>
+                    <button type="button" class="price-preset" onclick="setPreset(1000000, 2000000)"><?php echo __('price_1m_2m'); ?></button>
+                    <button type="button" class="price-preset" onclick="setPreset(2000000, 0)"><?php echo __('price_over_2m'); ?></button>
                 </div>
 
                 <!-- Range slider -->
@@ -182,16 +182,16 @@ include 'includes/header.php';
                 <!-- Nhập tay -->
                 <div class="price-inputs">
                     <div class="price-input-group">
-                        <label>Từ</label>
+                        <label><?php echo __('price_from'); ?></label>
                         <input type="number" name="price_min" id="inputMin" class="price-input-field"
                                min="0" step="10000" placeholder="0"
                                value="<?php echo $price_min ?? ''; ?>">
                     </div>
                     <span class="price-input-dash">—</span>
                     <div class="price-input-group">
-                        <label>Đến</label>
+                        <label><?php echo __('price_to'); ?></label>
                         <input type="number" name="price_max" id="inputMax" class="price-input-field"
-                               min="0" step="10000" placeholder="Không giới hạn"
+                               min="0" step="10000" placeholder="<?php echo __('price_no_limit'); ?>"
                                value="<?php echo $price_max ?? ''; ?>">
                     </div>
                 </div>
@@ -199,21 +199,21 @@ include 'includes/header.php';
 
             <!-- Sắp xếp -->
             <div class="filter-section">
-                <div class="filter-section-title"><i class="fas fa-sort"></i> Sắp xếp</div>
+                <div class="filter-section-title"><i class="fas fa-sort"></i> <?php echo __('filter_sort'); ?></div>
                 <select name="sort" class="sort-select" onchange="document.getElementById('filterForm').submit()">
-                    <option value="newest"     <?php echo $sort_by==='newest'     ? 'selected' : ''; ?>>Mới nhất</option>
-                    <option value="price_asc"  <?php echo $sort_by==='price_asc'  ? 'selected' : ''; ?>>Giá tăng dần</option>
-                    <option value="price_desc" <?php echo $sort_by==='price_desc' ? 'selected' : ''; ?>>Giá giảm dần</option>
-                    <option value="name_asc"   <?php echo $sort_by==='name_asc'   ? 'selected' : ''; ?>>Tên A-Z</option>
-                    <option value="popular"    <?php echo $sort_by==='popular'    ? 'selected' : ''; ?>>Nổi bật</option>
+                    <option value="newest"     <?php echo $sort_by==='newest'     ? 'selected' : ''; ?>><?php echo __('sort_newest'); ?></option>
+                    <option value="price_asc"  <?php echo $sort_by==='price_asc'  ? 'selected' : ''; ?>><?php echo __('sort_price_asc'); ?></option>
+                    <option value="price_desc" <?php echo $sort_by==='price_desc' ? 'selected' : ''; ?>><?php echo __('sort_price_desc'); ?></option>
+                    <option value="name_asc"   <?php echo $sort_by==='name_asc'   ? 'selected' : ''; ?>><?php echo __('sort_name_asc'); ?></option>
+                    <option value="popular"    <?php echo $sort_by==='popular'    ? 'selected' : ''; ?>><?php echo __('sort_popular'); ?></option>
                 </select>
             </div>
 
             <button type="submit" class="filter-apply-btn">
-                <i class="fas fa-search"></i> Áp dụng bộ lọc
+                <i class="fas fa-search"></i> <?php echo __('filter_apply'); ?>
             </button>
             <a href="products.php" class="filter-reset-btn">
-                <i class="fas fa-undo"></i> Xóa bộ lọc
+                <i class="fas fa-undo"></i> <?php echo __('filter_reset'); ?>
             </a>
         </form>
     </div>

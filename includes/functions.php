@@ -236,6 +236,17 @@ function calculateShippingFee($subtotal) {
     return $subtotal >= 2000000 ? 0 : 30000;
 }
 
+function ensureCartSelectedColumn($conn) {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+    $r = $conn->query("SHOW COLUMNS FROM cart LIKE 'selected'");
+    if ($r && $r->num_rows === 0) {
+        $conn->query("ALTER TABLE cart ADD COLUMN `selected` TINYINT(1) NOT NULL DEFAULT 1");
+    }
+    if ($r) $r->free();
+}
+
 function jsonResponse($data, $code = 200) {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');

@@ -6,7 +6,7 @@ require_once "includes/auth.php";
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($id == 0) {
-    die("<h3 style='color:red; text-align:center; margin-top:50px;'>Sản phẩm không tồn tại!</h3>");
+    die("<h3 style='color:red; text-align:center; margin-top:50px;'>" . __('product_not_found') . "</h3>");
 }
 
 // Lấy thông tin sản phẩm từ database
@@ -15,7 +15,7 @@ $result = mysqli_query($conn, $sql);
 $product = mysqli_fetch_assoc($result);
 
 if (!$product) {
-    die("<h3 style='color:red; text-align:center; margin-top:50px;'>Sản phẩm không tồn tại!</h3>");
+    die("<h3 style='color:red; text-align:center; margin-top:50px;'>" . __('product_not_found') . "</h3>");
 }
 
 // Xử lý gửi đánh giá mới
@@ -65,9 +65,9 @@ include 'includes/header.php';
 <div class="product-detail-container">
     <!-- Breadcrumb -->
     <div class="breadcrumb">
-        <a href="index.php"><i class="fas fa-home"></i> Trang chủ</a>
+        <a href="index.php"><i class="fas fa-home"></i> <?php echo __('breadcrumb_home'); ?></a>
         <i class="fas fa-chevron-right"></i>
-        <a href="products.php">Sản phẩm</a>
+        <a href="products.php"><?php echo __('products'); ?></a>
         <i class="fas fa-chevron-right"></i>
         <span><?php echo htmlspecialchars($product['name']); ?></span>
     </div>

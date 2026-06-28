@@ -3,26 +3,25 @@
  * API: Hủy đơn hàng
  * POST /api/cancel_order.php
  * Body: order_id (int)
- * Chỉ hủy được khi status = 'pending'
+ * Chỉ hủy được khi status = pending hoặc confirmed (chưa vận chuyển)
  */
 require_once '../includes/auth.php';
 
 if (!isLoggedIn()) {
-    jsonResponse(['success' => false, 'message' => 'Vui lòng đăng nhập'], 401);
+    jsonResponse(['success' => false, 'message' => __('err_login')], 401);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    jsonResponse(['success' => false, 'message' => 'Phương thức không hợp lệ'], 405);
+    jsonResponse(['success' => false, 'message' => __('err_invalid_method')], 405);
 }
 
 $orderId = (int)($_POST['order_id'] ?? 0);
 $userId  = getUserId();
 
 if ($orderId <= 0) {
-    jsonResponse(['success' => false, 'message' => 'Mã đơn hàng không hợp lệ'], 400);
+    jsonResponse(['success' => false, 'message' => __('err_invalid_order')], 400);
 }
 
-// Kiểm tra đơn hàng thuộc user và đang ở trạng thái pending
 $stmt = $conn->prepare("SELECT id, status, order_code FROM orders WHERE id = ? AND user_id = ?");
 $stmt->bind_param("ii", $orderId, $userId);
 $stmt->execute();
@@ -30,56 +29,43 @@ $order = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$order) {
-    jsonResponse(['success' => false, 'message' => 'Không tìm thấy đơn hàng'], 404);
+    jsonResponse(['success' => false, 'message' => __('err_order_not_found')], 404);
 }
 
-if ($order['status'] !== 'pending') {
+$cancelable = ['pending', 'confirmed'];
+if (!in_array($order['status'], $cancelable, true)) {
     jsonResponse([
         'success' => false,
-        'message' => 'Chỉ có thể hủy đơn hàng đang chờ xác nhận'
+        'message' => __('cancel_only_before_shipping')
     ], 400);
 }
 
-// Bắt đầu transaction
 $conn->begin_transaction();
 
 try {
-    // 1. Cập nhật trạng thái đơn hàng
     $stmt = $conn->prepare("UPDATE orders SET status = 'cancelled' WHERE id = ? AND user_id = ?");
     $stmt->bind_param("ii", $orderId, $userId);
     $stmt->execute();
     $stmt->close();
 
-    // 2. Hoàn lại tồn kho cho từng sản phẩm
-    $stmt = $conn->prepare("SELECT product_id, quantity FROM order_items WHERE order_id = ?");
-    $stmt->bind_param("i", $orderId);
-    $stmt->execute();
-    $items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+    restockOrderItems($conn, $orderId);
 
-    foreach ($items as $item) {
-        $stmtStock = $conn->prepare("UPDATE products SET stock = stock + ? WHERE id = ?");
-        $stmtStock->bind_param("ii", $item['quantity'], $item['product_id']);
-        $stmtStock->execute();
-        $stmtStock->close();
-    }
-
-    // 3. Ghi thông báo cho user
-    $title = "Đơn hàng đã hủy";
-    $message = "Đơn hàng #{$order['order_code']} của bạn đã được hủy thành công.";
-    $stmtNotif = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'info')");
-    $stmtNotif->bind_param("iss", $userId, $title, $message);
-    $stmtNotif->execute();
-    $stmtNotif->close();
+    sendUserNotification(
+        $conn,
+        $userId,
+        __('notif_order_cancelled_by_user'),
+        sprintf(__('notif_order_cancelled_by_user_msg'), $order['order_code']),
+        'info'
+    );
 
     $conn->commit();
 
     jsonResponse([
         'success' => true,
-        'message' => "Đơn hàng #{$order['order_code']} đã được hủy thành công!"
+        'message' => sprintf(__('cancel_success'), $order['order_code'])
     ]);
 
 } catch (Exception $e) {
     $conn->rollback();
-    jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra, vui lòng thử lại'], 500);
+    jsonResponse(['success' => false, 'message' => __('err_generic')], 500);
 }

@@ -13,17 +13,17 @@ include "includes/header.php";
         <div class="hero-slide active">
             <img src="assets/images/Banner.jpg" alt="Gundam Banner">
             <div class="hero-content">
-                <h1 class="hero-title">GUNDAM STORE HUMG</h1>
-                <p class="hero-subtitle">Mô hình Gundam chính hãng 100% từ Nhật Bản. Sưu tập ngay những bộ kit độc đáo nhất!</p>
-                <a href="#category" class="hero-btn">KHÁM PHÁ NGAY</a>
+                <h1 class="hero-title"><?php echo __('hero_title_1'); ?></h1>
+                <p class="hero-subtitle"><?php echo __('hero_subtitle_1'); ?></p>
+                <a href="#category" class="hero-btn"><?php echo __('hero_btn_explore'); ?></a>
             </div>
         </div>
         <div class="hero-slide">
             <img src="assets/images/Banner2.jpg" alt="Gundam Collection">
             <div class="hero-content">
-                <h1 class="hero-title">BỘ SƯU TẬP ĐỘC QUYỀN</h1>
-                <p class="hero-subtitle">Hơn 100+ mẫu Gundam từ HG đến PG. Cập nhật mẫu mới hàng tuần!</p>
-                <a href="products.php" class="hero-btn">XEM TẤT CẢ</a>
+                <h1 class="hero-title"><?php echo __('hero_title_2'); ?></h1>
+                <p class="hero-subtitle"><?php echo __('hero_subtitle_2'); ?></p>
+                <a href="products.php" class="hero-btn"><?php echo __('hero_btn_view_all'); ?></a>
             </div>
         </div>
     </div>
@@ -35,23 +35,23 @@ include "includes/header.php";
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                <h3 class="feature-title">CHÍNH HÃNG 100%</h3>
-                <p class="feature-desc">Sản phẩm Bandai Spirits chính hãng với tem bảo hành, đảm bảo chất lượng</p>
+                <h3 class="feature-title"><?php echo __('feat_authentic'); ?></h3>
+                <p class="feature-desc"><?php echo __('feat_authentic_desc'); ?></p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-shipping-fast"></i></div>
-                <h3 class="feature-title">MIỄN PHÍ VẬN CHUYỂN</h3>
-                <p class="feature-desc">Miễn phí vận chuyển cho đơn hàng từ 2.000.000₫ trên toàn quốc</p>
+                <h3 class="feature-title"><?php echo __('feat_free_ship'); ?></h3>
+                <p class="feature-desc"><?php echo __('feat_free_ship_desc'); ?></p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-headset"></i></div>
-                <h3 class="feature-title">HỖ TRỢ 24/7</h3>
-                <p class="feature-desc">Đội ngũ tư vấn viên sẵn sàng hỗ trợ bạn mọi lúc, mọi nơi</p>
+                <h3 class="feature-title"><?php echo __('feat_support'); ?></h3>
+                <p class="feature-desc"><?php echo __('feat_support_desc'); ?></p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-exchange-alt"></i></div>
-                <h3 class="feature-title">ĐỔI TRẢ DỄ DÀNG</h3>
-                <p class="feature-desc">Đổi trả trong vòng 7 ngày nếu sản phẩm có lỗi từ nhà sản xuất</p>
+                <h3 class="feature-title"><?php echo __('feat_return'); ?></h3>
+                <p class="feature-desc"><?php echo __('feat_return_desc'); ?></p>
             </div>
         </div>
     </div>
@@ -61,19 +61,19 @@ include "includes/header.php";
 <section id="category" class="category-section">
     <div class="container">
         <div style="text-align: center; margin-bottom: 40px;">
-            <h2 class="page-title">DANH MỤC SẢN PHẨM</h2>
-            <p class="page-subtitle">Khám phá bộ sưu tập Gundam đa dạng với nhiều phân khúc từ cơ bản đến cao cấp</p>
+            <h2 class="page-title"><?php echo __('cat_title'); ?></h2>
+            <p class="page-subtitle"><?php echo __('cat_subtitle'); ?></p>
         </div>
 
         <div class="category-grid">
             <?php
             // Danh mục sản phẩm mẫu
             $category_data = [
-                'HG' => ['name' => 'High Grade', 'desc' => 'Mô hình cơ bản, dễ lắp ráp', 'image' => 'assets/images/cate_hg.jpg'],
-                'MG' => ['name' => 'Master Grade', 'desc' => 'Độ chi tiết cao, tỷ lệ 1/100', 'image' => 'assets/images/cate_mg.jpg'],
-                'RG' => ['name' => 'Real Grade', 'desc' => 'Chi tiết thực tế, tỷ lệ 1/144', 'image' => 'assets/images/cate_rg.jpg'],
-                'PG' => ['name' => 'Perfect Grade', 'desc' => 'Cao cấp nhất, tỷ lệ 1/60', 'image' => 'assets/images/cate_pg.jpg'],
-                'SD' => ['name' => 'Super Deformed', 'desc' => 'Dễ thương, đầu to body nhỏ', 'image' => 'assets/images/cate_sd.jpg']
+                'HG' => ['name' => 'High Grade', 'desc' => __('cat_hg_desc'), 'image' => 'assets/images/cate_hg.jpg'],
+                'MG' => ['name' => 'Master Grade', 'desc' => __('cat_mg_desc'), 'image' => 'assets/images/cate_mg.jpg'],
+                'RG' => ['name' => 'Real Grade', 'desc' => __('cat_rg_desc'), 'image' => 'assets/images/cate_rg.jpg'],
+                'PG' => ['name' => 'Perfect Grade', 'desc' => __('cat_pg_desc'), 'image' => 'assets/images/cate_pg.jpg'],
+                'SD' => ['name' => 'Super Deformed', 'desc' => __('cat_sd_desc'), 'image' => 'assets/images/cate_sd.jpg']
             ];
             
             // Lấy số lượng sản phẩm từ DB
@@ -95,7 +95,7 @@ include "includes/header.php";
                 <div class="category-info">
                     <h3 class="category-name"><?= $type ?> – <?= $category['name'] ?></h3>
                     <p class="category-desc"><?= $category['desc'] ?></p>
-                    <span class="category-count"><?= $count ?> sản phẩm</span>
+                    <span class="category-count"><?php echo sprintf(__('cat_products_count'), $count); ?></span>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -107,8 +107,8 @@ include "includes/header.php";
 <section id="sale" class="category-section" style="background: rgba(220, 38, 38, 0.04); padding: 60px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
     <div class="container">
         <div style="text-align: center; margin-bottom: 40px;">
-            <h2 class="page-title" style="background: linear-gradient(90deg, var(--text-main), var(--primary-red)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KHUYẾN MÃI - GIẢM GIÁ</h2>
-            <p class="page-subtitle">Ưu đãi đặc biệt dành cho khách hàng. Đừng bỏ lỡ cơ hội sở hữu Gundam với giá tốt nhất!</p>
+            <h2 class="page-title" style="background: linear-gradient(90deg, var(--text-main), var(--primary-red)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><?php echo __('sale_section_title'); ?></h2>
+            <p class="page-subtitle"><?php echo __('sale_section_subtitle'); ?></p>
         </div>
 
         <div class="products-grid">
@@ -145,8 +145,8 @@ include "includes/header.php";
                         <span class="old-price"><?= $formatted_old_price ?></span>
                     </div>
                     <div class="product-actions">
-                        <a href="products_detail.php?id=<?= $row['id'] ?>" class="btn-detail">Chi tiết</a>
-                        <button onclick="addToCart(<?= $row['id'] ?>)" class="btn-cart-add" title="Thêm vào giỏ hàng">
+                        <a href="products_detail.php?id=<?= $row['id'] ?>" class="btn-detail"><?php echo __('btn_detail'); ?></a>
+                        <button onclick="addToCart(<?= $row['id'] ?>)" class="btn-cart-add" title="<?php echo __('add_to_cart'); ?>">
                             <i class="fas fa-shopping-cart"></i>
                         </button>
                     </div>
@@ -155,7 +155,7 @@ include "includes/header.php";
             <?php
                 }
             } else {
-                echo "<p style='text-align:center; color:var(--text-muted); width:100%; padding: 40px; grid-column: 1/-1;'>Hiện chưa có sản phẩm giảm giá</p>";
+                echo "<p style='text-align:center; color:var(--text-muted); width:100%; padding: 40px; grid-column: 1/-1;'>" . __('no_sale_products') . "</p>";
             }
             ?>
         </div>
@@ -166,8 +166,8 @@ include "includes/header.php";
 <section id="highlight" class="category-section" style="padding: 60px 0;">
     <div class="container">
         <div style="text-align: center; margin-bottom: 40px;">
-            <h2 class="page-title">GUNDAM NỔI BẬT</h2>
-            <p class="page-subtitle">Những mẫu Gundam được yêu thích nhất. Chất lượng vượt trội, thiết kế ấn tượng</p>
+            <h2 class="page-title"><?php echo __('featured_title'); ?></h2>
+            <p class="page-subtitle"><?php echo __('featured_subtitle'); ?></p>
         </div>
 
         <div class="products-grid">
@@ -209,8 +209,8 @@ include "includes/header.php";
                         <?php endif; ?>
                     </div>
                     <div class="product-actions">
-                        <a href="products_detail.php?id=<?= $row['id'] ?>" class="btn-detail">Chi tiết</a>
-                        <button onclick="addToCart(<?= $row['id'] ?>)" class="btn-cart-add" title="Thêm vào giỏ hàng">
+                        <a href="products_detail.php?id=<?= $row['id'] ?>" class="btn-detail"><?php echo __('btn_detail'); ?></a>
+                        <button onclick="addToCart(<?= $row['id'] ?>)" class="btn-cart-add" title="<?php echo __('add_to_cart'); ?>">
                             <i class="fas fa-shopping-cart"></i>
                         </button>
                     </div>
@@ -219,14 +219,14 @@ include "includes/header.php";
             <?php
                 }
             } else {
-                echo "<p style='text-align:center; color:var(--text-muted); width:100%; padding: 40px; grid-column: 1/-1;'>Không có sản phẩm nổi bật</p>";
+                echo "<p style='text-align:center; color:var(--text-muted); width:100%; padding: 40px; grid-column: 1/-1;'>" . __('no_featured') . "</p>";
             }
             ?>
         </div>
         
         <div style="text-align: center; margin-top: 50px;">
             <a href="products.php" class="btn btn-blue" style="border-radius:30px; padding: 14px 36px;">
-                <i class="fas fa-eye"></i> XEM TẤT CẢ SẢN PHẨM
+                <i class="fas fa-eye"></i> <?php echo __('view_all_products'); ?>
             </a>
         </div>
     </div>
@@ -249,19 +249,19 @@ include "includes/header.php";
             ?>
             <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
                 <div class="stat-value" style="font-size: 3rem;"><?= number_format($actual_prod_count) ?></div>
-                <div class="stat-label" style="justify-content: center;">Sản Phẩm</div>
+                <div class="stat-label" style="justify-content: center;"><?php echo __('stat_products'); ?></div>
             </div>
             <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
                 <div class="stat-value" style="font-size: 3rem;"><?= number_format($actual_cust_count) ?></div>
-                <div class="stat-label" style="justify-content: center;">Khách Hàng</div>
+                <div class="stat-label" style="justify-content: center;"><?php echo __('stat_customers'); ?></div>
             </div>
             <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
                 <div class="stat-value" style="font-size: 3rem;">98%</div>
-                <div class="stat-label" style="justify-content: center;">Hài Lòng</div>
+                <div class="stat-label" style="justify-content: center;"><?php echo __('stat_satisfaction'); ?></div>
             </div>
             <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
                 <div class="stat-value" style="font-size: 3rem;">24/7</div>
-                <div class="stat-label" style="justify-content: center;">Hỗ Trợ</div>
+                <div class="stat-label" style="justify-content: center;"><?php echo __('stat_support'); ?></div>
             </div>
         </div>
     </div>

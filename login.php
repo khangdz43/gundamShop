@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $remember = !empty($_POST['remember']);
 
     if ($username === '' || $password === '') {
-        $message = 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.';
+        $message = __('err_login_required');
     } else {
         $stmt = $conn->prepare("SELECT id, username, password, role, is_active FROM users WHERE username = ? OR email = ? LIMIT 1");
         $stmt->bind_param("ss", $username, $username);
@@ -42,18 +42,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($_SESSION['redirect_after_login']);
             redirect($redirect);
         } else {
-            $message = 'Tên đăng nhập/email hoặc mật khẩu không đúng.';
+            $message = __('err_login_invalid');
         }
     }
     $savedUsername = $username;
 }
 ?>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="<?php echo currentLang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - Gundam Store</title>
+    <title><?php echo __('login_title'); ?> - Gundam Store</title>
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -68,12 +68,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="auth-page">
     <div class="auth-card">
+        <div style="display:flex;justify-content:flex-end;gap:4px;margin-bottom:10px;">
+            <a href="<?php echo htmlspecialchars(langUrl('vi')); ?>" class="btn-header btn-sm <?php echo currentLang() === 'vi' ? 'active-lang' : ''; ?>" style="padding:4px 8px;font-size:0.75rem;font-weight:700;">VI</a>
+            <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header btn-sm <?php echo currentLang() === 'en' ? 'active-lang' : ''; ?>" style="padding:4px 8px;font-size:0.75rem;font-weight:700;">EN</a>
+        </div>
         <div class="auth-brand">
             <i class="fas fa-robot"></i>
             <span>Gundam Store HUMG</span>
         </div>
-        <h1>Đăng nhập</h1>
-        <p class="auth-subtitle">Chào mừng bạn quay lại. Đăng nhập để lưu giỏ hàng, xem đơn hàng và tiếp tục nhận tư vấn AI.</p>
+        <h1><?php echo __('login_title'); ?></h1>
+        <p class="auth-subtitle"><?php echo __('login_subtitle'); ?></p>
 
         <?php if ($message): ?>
             <div class="alert alert-<?php echo htmlspecialchars($message_type); ?>"><?php echo htmlspecialchars($message); ?></div>
@@ -81,14 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="POST">
             <div class="form-group">
-                <label for="username">Tên đăng nhập hoặc email</label>
+                <label for="username"><?php echo __('login_username'); ?></label>
                 <input type="text" name="username" id="username" class="form-control" placeholder="Ví dụ: amuro_ray" required autofocus
                        value="<?php echo htmlspecialchars($savedUsername); ?>">
             </div>
             <div class="form-group">
-                <label for="password">Mật khẩu</label>
+                <label for="password"><?php echo __('login_password'); ?></label>
                 <div style="position: relative;">
-                    <input type="password" name="password" id="password" class="form-control" placeholder="Nhập mật khẩu của bạn" required style="padding-right: 40px;">
+                    <input type="password" name="password" id="password" class="form-control" required style="padding-right: 40px;">
                     <i class="fas fa-eye" id="togglePassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; z-index: 10;"></i>
                 </div>
             </div>
@@ -96,15 +100,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="remember-label">
                     <input type="checkbox" name="remember" id="remember" value="1"
                         <?php echo !empty($_COOKIE[REMEMBER_COOKIE]) ? 'checked' : ''; ?>>
-                    <span>Ghi nhớ đăng nhập</span>
+                    <span><?php echo __('remember_me'); ?></span>
                 </label>
             </div>
-            <button type="submit" class="btn btn-blue" style="width:100%">Đăng nhập</button>
+            <button type="submit" class="btn btn-blue" style="width:100%"><?php echo __('login_title'); ?></button>
         </form>
 
         <div class="auth-link">
-            <p>Chưa có tài khoản? <a href="register.php">Tạo tài khoản mới</a></p>
-            <p style="margin-top:10px"><a href="index.php"><i class="fas fa-arrow-left"></i> Về trang chủ</a></p>
+            <p><?php echo __('no_account'); ?> <a href="register.php"><?php echo __('create_account'); ?></a></p>
+            <p style="margin-top:10px"><a href="index.php"><i class="fas fa-arrow-left"></i> <?php echo __('back_home_link'); ?></a></p>
         </div>
     </div>
 </div>
@@ -125,4 +129,3 @@ document.getElementById('togglePassword').addEventListener('click', function() {
 </script>
 </body>
 </html>
-

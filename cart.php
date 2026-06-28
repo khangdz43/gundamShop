@@ -102,10 +102,10 @@ include 'includes/header.php';
 
     <?php if (empty($cartItems)): ?>
         <div class="card" style="text-align:center;padding:60px">
-            <i class="fas fa-shopping-cart" style="font-size:4rem;color:#555;margin-bottom:20px"></i>
+            <i class="fas fa-shopping-cart" style="font-size:4rem;color:var(--text-muted);margin-bottom:20px"></i>
             <h3><?php echo __('cart_empty'); ?></h3>
-            <p style="color:var(--text-gray);margin:15px 0 25px"><?php echo __('cart_empty_desc'); ?></p>
-            <a href="products.php" class="btn btn-blue"><i class="fas fa-shopping-bag"></i> <?php echo __('shop_now'); ?></a>
+            <p style="color:var(--text-muted);margin:15px 0 25px"><?php echo __('cart_empty_desc'); ?></p>
+            <a href="products.php" class="btn btn-red"><i class="fas fa-shopping-bag"></i> <?php echo __('shop_now'); ?></a>
         </div>
     <?php else: ?>
         <form method="POST" id="cartSelectionForm">
@@ -192,9 +192,9 @@ include 'includes/header.php';
                         <strong id="cartGrandTotal"><?php echo formatPrice($selectedTotal + $shipping); ?></strong>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 25px;">
-                        <button type="button" id="btnCheckout" class="btn btn-blue" style="width:100%"><i class="fas fa-credit-card"></i> <?php echo __('checkout'); ?></button>
-                        <a href="products.php" class="btn btn-gray" style="width:100%"><i class="fas fa-arrow-left"></i> <?php echo __('cart_continue'); ?></a>
-                        <a href="cart.php?action=clear" class="btn btn-red btn-sm" style="width:100%" onclick="return confirm('<?php echo addslashes(__('cart_clear_confirm')); ?>')"><i class="fas fa-trash"></i> <?php echo __('cart_clear'); ?></a>
+                        <button type="button" id="btnCheckout" class="btn btn-red" style="width:100%; padding: 12px; font-size: 1.1rem;"><i class="fas fa-credit-card"></i> <?php echo __('checkout'); ?></button>
+                        <a href="products.php" class="btn btn-gray" style="width:100%; padding: 10px;"><i class="fas fa-arrow-left"></i> <?php echo __('cart_continue'); ?></a>
+                        <a href="cart.php?action=clear" class="btn btn-gray btn-sm" style="width:100%" onclick="return confirm('<?php echo addslashes(__('cart_clear_confirm')); ?>')"><i class="fas fa-trash"></i> <?php echo __('cart_clear'); ?></a>
                     </div>
                 </div>
             </div>

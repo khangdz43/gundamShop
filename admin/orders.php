@@ -30,9 +30,9 @@ include '../includes/header.php';
     <h1 class="page-title">QUẢN LÝ ĐƠN HÀNG</h1>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;justify-content:center">
-        <a href="orders.php" class="btn <?php echo !$statusFilter ? 'btn-blue' : 'btn-gray'; ?> btn-sm">Tất cả</a>
+        <a href="orders.php" class="btn <?php echo !$statusFilter ? 'btn-red' : 'btn-gray'; ?> btn-sm">Tất cả</a>
         <?php foreach (['pending','confirmed','shipping','delivered','cancelled'] as $s): ?>
-        <a href="orders.php?status=<?php echo $s; ?>" class="btn <?php echo $statusFilter === $s ? 'btn-blue' : 'btn-gray'; ?> btn-sm"><?php echo getOrderStatusLabel($s); ?></a>
+        <a href="orders.php?status=<?php echo $s; ?>" class="btn <?php echo $statusFilter === $s ? 'btn-red' : 'btn-gray'; ?> btn-sm"><?php echo getOrderStatusLabel($s); ?></a>
         <?php endforeach; ?>
     </div>
 
@@ -54,7 +54,7 @@ include '../includes/header.php';
                         <td><?php echo $o['payment_method'] === 'cod' ? 'COD' : 'CK'; ?></td>
                         <td><span class="status-badge <?php echo getOrderStatusClass($o['status']); ?>"><?php echo getOrderStatusLabel($o['status']); ?></span></td>
                         <td><?php echo date('d/m/Y H:i', strtotime($o['created_at'])); ?></td>
-                        <td><a href="order_detail.php?id=<?php echo $o['id']; ?>" class="btn btn-blue btn-sm">Chi tiết</a></td>
+                        <td><a href="order_detail.php?id=<?php echo $o['id']; ?>" class="btn btn-red btn-sm">Chi tiết</a></td>
                     </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>

@@ -63,9 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Đăng ký - Gundam Store</title>
     <script>
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            if (savedTheme === 'light') {
-                document.documentElement.classList.add('light-theme');
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-theme');
             }
         })();
     </script>
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="auth-page">
     <div class="auth-card">
         <div class="auth-brand">
-            <i class="fas fa-user-astronaut"></i>
+            <img src="assets/images/LOGO.jpg" alt="Logo" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
             <span>Gundam Store HUMG</span>
         </div>
         <h1>Tạo tài khoản</h1>
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-eye" id="toggleConfirmPassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; z-index: 10;"></i>
                 </div>
             </div>
-            <button type="submit" class="btn btn-blue" style="width:100%">Tạo tài khoản</button>
+            <button type="submit" class="btn btn-red" style="width:100%">Tạo tài khoản</button>
         </form>
 
         <div class="auth-link">

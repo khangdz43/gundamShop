@@ -89,7 +89,7 @@ include 'includes/header.php';
             <h1 class="detail-title"><?php echo htmlspecialchars($product['name']); ?></h1>
             
             <div class="detail-rating-summary" style="margin: 10px 0; display: flex; align-items: center; gap: 8px;">
-                <div class="stars" style="color: #ffc107;">
+                <div class="stars" style="color: #ffb800;">
                     <?php
                     if ($avg_rating > 0) {
                         for ($i = 1; $i <= 5; $i++) {
@@ -101,7 +101,7 @@ include 'includes/header.php';
                                 echo '<i class="far fa-star"></i>';
                             }
                         }
-                        echo ' <strong style="color: var(--text-white); margin-left: 4px;">' . $avg_rating . '/5</strong>';
+                        echo ' <strong style="color: var(--text-main); margin-left: 4px;">' . $avg_rating . '/5</strong>';
                     } else {
                         for ($i = 1; $i <= 5; $i++) {
                             echo '<i class="far fa-star"></i>';
@@ -116,7 +116,7 @@ include 'includes/header.php';
             <div class="detail-meta-row">
                 <span class="product-type"><?= htmlspecialchars($product['type']) ?></span>
                 <span style="color: var(--text-muted); font-size: 0.9rem;">
-                    <i class="fas fa-barcode" style="color: var(--primary-blue); margin-right: 4px;"></i>
+                    <i class="fas fa-barcode" style="color: var(--text-muted); margin-right: 4px;"></i>
                     Mã: GUNDAM-<?php echo str_pad($product['id'], 3, '0', STR_PAD_LEFT); ?>
                 </span>
                 <span class="stock-badge <?php echo $product['stock'] > 0 ? 'in-stock' : 'out-stock'; ?>">
@@ -144,7 +144,7 @@ include 'includes/header.php';
             <!-- Quantity Control -->
             <?php if($product['stock'] > 0): ?>
             <div class="detail-qty-row">
-                <strong style="color: var(--text-white);">Số lượng:</strong>
+                <strong style="color: var(--text-main);">Số lượng:</strong>
                 <div class="qty-control">
                     <button class="qty-btn" type="button" onclick="decreaseQuantity()">-</button>
                     <input type="number" id="quantity" class="qty-input" value="1" min="1" max="<?php echo min(99, $product['stock']); ?>" readonly>
@@ -170,7 +170,7 @@ include 'includes/header.php';
             <?php endif; ?>
             
             <!-- Specifications -->
-            <div class="product-meta" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; margin-top: auto;">
+            <div class="product-meta" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin-top: auto;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0; border-bottom: 1px solid var(--border-color)">
                         <span style="color: var(--text-muted)">Phân khúc:</span>
@@ -201,8 +201,8 @@ include 'includes/header.php';
     </div>
 
     <!-- REVIEWS SECTION -->
-    <div class="reviews-section" style="margin: 50px 0; padding: 30px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-        <h2 class="section-title" style="margin-bottom: 25px; font-size: 1.5rem; color: var(--text-white); border-bottom: 2px solid var(--primary-blue); padding-bottom: 10px; display: inline-block;">
+    <div class="reviews-section" style="margin: 50px 0; padding: 30px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius);">
+        <h2 class="section-title" style="margin-bottom: 25px; font-size: 1.5rem; color: var(--text-main); border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; display: inline-block;">
             ĐÁNH GIÁ SẢN PHẨM (<?php echo $count_reviews; ?>)
         </h2>
         
@@ -232,10 +232,10 @@ include 'includes/header.php';
                         ?>
                             <div class="review-item" style="padding: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 15px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <strong style="color: var(--text-white);"><?php echo htmlspecialchars($rev['full_name'] ?: $rev['username']); ?></strong>
+                                    <strong style="color: var(--text-main);"><?php echo htmlspecialchars($rev['full_name'] ?: $rev['username']); ?></strong>
                                     <span style="color: var(--text-muted); font-size: 0.85rem;"><?php echo date('d/m/Y H:i', strtotime($rev['created_at'])); ?></span>
                                 </div>
-                                <div style="color: #ffc107; margin-bottom: 8px; font-size: 0.9rem;">
+                                <div style="color: #ffb800; margin-bottom: 8px; font-size: 0.9rem;">
                                     <?php
                                     for ($i = 1; $i <= 5; $i++) {
                                         if ($i <= $rev['rating']) {
@@ -262,8 +262,8 @@ include 'includes/header.php';
             </div>
             
             <!-- Right: Add Review Form -->
-            <div class="add-review-box" style="background: rgba(255,255,255,0.01); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color);">
-                <h3 style="color: var(--text-white); margin-bottom: 20px; font-size: 1.2rem;">Viết đánh giá của bạn</h3>
+            <div class="add-review-box" style="background: var(--bg-body); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <h3 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem;">Viết đánh giá của bạn</h3>
                 
                 <?php if (isset($_GET['review_success'])): ?>
                     <div class="alert alert-success" style="background: rgba(40, 167, 69, 0.1); border: 1px solid #28a745; color: #28a745; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;">
@@ -282,8 +282,8 @@ include 'includes/header.php';
                         <input type="hidden" name="submit_review" value="1">
                         
                         <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-white);">Chọn mức đánh giá:</label>
-                            <div class="star-rating-input" style="display: flex; gap: 8px; font-size: 1.5rem; color: #ffc107; cursor: pointer;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">Chọn mức đánh giá:</label>
+                            <div class="star-rating-input" style="display: flex; gap: 8px; font-size: 1.5rem; color: #ffb800; cursor: pointer;">
                                 <i class="far fa-star rating-star" data-value="1"></i>
                                 <i class="far fa-star rating-star" data-value="2"></i>
                                 <i class="far fa-star rating-star" data-value="3"></i>
@@ -294,8 +294,8 @@ include 'includes/header.php';
                         </div>
                         
                         <div class="form-group" style="margin-bottom: 20px;">
-                            <label for="comment" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-white);">Nội dung đánh giá:</label>
-                            <textarea name="comment" id="comment" required class="form-control" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..." style="width: 100%; min-height: 120px; padding: 10px; border-radius: 6px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--text-white); resize: vertical; box-sizing: border-box;"></textarea>
+                            <label for="comment" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">Nội dung đánh giá:</label>
+                            <textarea name="comment" id="comment" required class="form-control" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..." style="width: 100%; min-height: 120px; padding: 10px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); resize: vertical; box-sizing: border-box;"></textarea>
                         </div>
                         
                         <button type="submit" class="btn btn-blue" style="width: 100%; padding: 12px; font-weight: bold; border-radius: 6px;">GỬI ĐÁNH GIÁ</button>

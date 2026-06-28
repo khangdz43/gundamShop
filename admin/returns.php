@@ -131,7 +131,7 @@ include '../includes/header.php';
                         <td><?php echo date('d/m/Y H:i', strtotime($r['created_at'])); ?></td>
                         <td>
                             <?php if ($r['status'] === 'pending'): ?>
-                                <button type="button" class="btn btn-blue btn-sm" onclick='showProcessModal(<?php echo json_encode($r); ?>)'>Xử lý</button>
+                                <button type="button" class="btn btn-red btn-sm" onclick='showProcessModal(<?php echo json_encode($r); ?>)'>Xử lý</button>
                             <?php else: ?>
                                 <span style="color:var(--text-gray); font-size:0.9rem;">
                                     <?php echo htmlspecialchars($r['admin_comment'] ?: 'Không có phản hồi'); ?>
@@ -174,7 +174,7 @@ include '../includes/header.php';
             
             <div style="display:flex; gap:12px; margin-top:20px; justify-content:flex-end;">
                 <button type="button" class="btn btn-gray" onclick="closeProcessModal()">Hủy</button>
-                <button type="submit" class="btn btn-blue">Xác nhận</button>
+                <button type="submit" class="btn btn-red">Xác nhận</button>
             </div>
         </form>
     </div>

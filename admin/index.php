@@ -72,7 +72,7 @@ include '../includes/header.php';
         <div class="card" style="margin-top: 0;">
             <h2 style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
                 Đơn hàng gần đây
-                <a href="orders.php" class="btn btn-blue btn-sm">Xem tất cả</a>
+                <a href="orders.php" class="btn btn-red btn-sm">Xem tất cả</a>
             </h2>
             <?php if (empty($recentOrders)): ?>
                 <p style="color:var(--text-gray)">Chưa có đơn hàng</p>
@@ -89,7 +89,7 @@ include '../includes/header.php';
                             <td><?php echo formatPrice($o['total']); ?></td>
                             <td><span class="status-badge <?php echo getOrderStatusClass($o['status']); ?>"><?php echo getOrderStatusLabel($o['status']); ?></span></td>
                             <td><?php echo date('d/m/Y H:i', strtotime($o['created_at'])); ?></td>
-                            <td><a href="order_detail.php?id=<?php echo $o['id']; ?>" class="btn btn-blue btn-sm">Chi tiết</a></td>
+                            <td><a href="order_detail.php?id=<?php echo $o['id']; ?>" class="btn btn-red btn-sm">Chi tiết</a></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -120,8 +120,8 @@ document.addEventListener("DOMContentLoaded", function() {
         return;
     }
     
-    const getChartColor = () => document.documentElement.classList.contains('light-theme') ? '#334155' : '#f0f0f0';
-    const getBorderColor = () => document.documentElement.classList.contains('light-theme') ? '#e2e8f0' : '#111';
+    const getChartColor = () => document.documentElement.classList.contains('dark-theme') ? '#f0f0f0' : '#334155';
+    const getBorderColor = () => document.documentElement.classList.contains('dark-theme') ? '#111' : '#e2e8f0';
 
     const chart = new Chart(ctx, {
         type: 'doughnut',

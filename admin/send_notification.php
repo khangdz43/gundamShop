@@ -89,7 +89,7 @@ include '../includes/header.php';
 
             <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
                 <a href="index.php" class="btn btn-gray">Hủy bỏ</a>
-                <button type="submit" class="btn btn-blue"><i class="fas fa-paper-plane"></i> Gửi thông báo</button>
+                <button type="submit" class="btn btn-red"><i class="fas fa-paper-plane"></i> Gửi thông báo</button>
             </div>
         </form>
     </div>

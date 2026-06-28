@@ -297,20 +297,20 @@ function initThemeToggle() {
     const toggle = document.querySelector('.theme-toggle');
     if (!toggle) return;
 
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.classList.toggle('light-theme', savedTheme === 'light');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.toggle('dark-theme', savedTheme === 'dark');
     updateThemeIcon();
 
     toggle.addEventListener('click', () => {
-        const isLight = document.documentElement.classList.toggle('light-theme');
-        const theme = isLight ? 'light' : 'dark';
+        const isDark = document.documentElement.classList.toggle('dark-theme');
+        const theme = isDark ? 'dark' : 'light';
         localStorage.setItem('theme', theme);
         updateThemeIcon();
     });
 
     function updateThemeIcon() {
-        const isLight = document.documentElement.classList.contains('light-theme');
-        toggle.innerHTML = isLight ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+        const isDark = document.documentElement.classList.contains('dark-theme');
+        toggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     }
 }
 

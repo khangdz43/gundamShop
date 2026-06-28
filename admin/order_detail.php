@@ -83,7 +83,7 @@ include '../includes/header.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-blue" style="width:100%"><i class="fas fa-save"></i> Lưu trạng thái</button>
+                <button type="submit" class="btn btn-red" style="width:100%"><i class="fas fa-save"></i> Lưu trạng thái</button>
             </form>
             <a href="orders.php" class="btn btn-gray" style="width:100%;margin-top:10px"><i class="fas fa-arrow-left"></i> Quay lại</a>
         </div>

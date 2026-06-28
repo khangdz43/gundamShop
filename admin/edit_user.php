@@ -133,7 +133,7 @@ include '../includes/header.php';
             <?php endif; ?>
             
             <div style="display:flex;gap:10px;">
-                <button type="submit" class="btn btn-blue"><i class="fas fa-save"></i> Lưu thay đổi</button>
+                <button type="submit" class="btn btn-red"><i class="fas fa-save"></i> Lưu thay đổi</button>
                 <a href="users.php" class="btn btn-gray">Quay lại</a>
             </div>
         </form>

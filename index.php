@@ -27,6 +27,13 @@ include "includes/header.php";
             </div>
         </div>
     </div>
+    <!-- Add Controls -->
+    <button class="hero-arrow hero-arrow-prev" onclick="prevSlide()" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+    <button class="hero-arrow hero-arrow-next" onclick="nextSlide()" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+    <div class="hero-dots">
+        <button class="hero-dot active" onclick="showSlide(0)" aria-label="Slide 1"></button>
+        <button class="hero-dot" onclick="showSlide(1)" aria-label="Slide 2"></button>
+    </div>
 </section>
 
 <!-- FEATURES SECTION -->
@@ -60,9 +67,9 @@ include "includes/header.php";
 <!-- CATEGORY SECTION -->
 <section id="category" class="category-section">
     <div class="container">
-        <div style="text-align: center; margin-bottom: 40px;">
-            <h2 class="page-title"><?php echo __('cat_title'); ?></h2>
-            <p class="page-subtitle"><?php echo __('cat_subtitle'); ?></p>
+        <div class="section-header" style="justify-content: center; flex-direction: column; align-items: center; text-align: center;">
+            <h2 class="section-title center"><?php echo __('cat_title'); ?></h2>
+            <p class="section-subtitle"><?php echo __('cat_subtitle'); ?></p>
         </div>
 
         <div class="category-grid">
@@ -104,11 +111,14 @@ include "includes/header.php";
 </section>
 
 <!-- SALE PRODUCTS -->
-<section id="sale" class="category-section" style="background: rgba(220, 38, 38, 0.04); padding: 60px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+<section id="sale" class="category-section" style="background: var(--bg-white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
     <div class="container">
-        <div style="text-align: center; margin-bottom: 40px;">
-            <h2 class="page-title" style="background: linear-gradient(90deg, var(--text-main), var(--primary-red)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><?php echo __('sale_section_title'); ?></h2>
-            <p class="page-subtitle"><?php echo __('sale_section_subtitle'); ?></p>
+        <div class="section-header">
+            <div>
+                <h2 class="section-title" style="color: var(--red);"><?php echo __('sale_section_title'); ?></h2>
+                <p class="section-subtitle"><?php echo __('sale_section_subtitle'); ?></p>
+            </div>
+            <a href="products.php?type=SALE" class="section-link">Xem tất cả <i class="fas fa-arrow-right"></i></a>
         </div>
 
         <div class="products-grid">
@@ -163,11 +173,13 @@ include "includes/header.php";
 </section>
 
 <!-- FEATURED PRODUCTS -->
-<section id="highlight" class="category-section" style="padding: 60px 0;">
+<section id="highlight" class="category-section">
     <div class="container">
-        <div style="text-align: center; margin-bottom: 40px;">
-            <h2 class="page-title"><?php echo __('featured_title'); ?></h2>
-            <p class="page-subtitle"><?php echo __('featured_subtitle'); ?></p>
+        <div class="section-header">
+            <div>
+                <h2 class="section-title"><?php echo __('featured_title'); ?></h2>
+                <p class="section-subtitle"><?php echo __('featured_subtitle'); ?></p>
+            </div>
         </div>
 
         <div class="products-grid">
@@ -247,21 +259,21 @@ include "includes/header.php";
             $result_cust_count = mysqli_query($conn, $sql_cust_count);
             $actual_cust_count = $result_cust_count ? mysqli_fetch_assoc($result_cust_count)['count'] : 0;
             ?>
-            <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
-                <div class="stat-value" style="font-size: 3rem;"><?= number_format($actual_prod_count) ?></div>
-                <div class="stat-label" style="justify-content: center;"><?php echo __('stat_products'); ?></div>
+            <div class="stat-card">
+                <div class="stat-value"><?= number_format($actual_prod_count) ?></div>
+                <div class="stat-label"><?php echo __('stat_products'); ?></div>
             </div>
-            <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
-                <div class="stat-value" style="font-size: 3rem;"><?= number_format($actual_cust_count) ?></div>
-                <div class="stat-label" style="justify-content: center;"><?php echo __('stat_customers'); ?></div>
+            <div class="stat-card">
+                <div class="stat-value"><?= number_format($actual_cust_count) ?></div>
+                <div class="stat-label"><?php echo __('stat_customers'); ?></div>
             </div>
-            <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
-                <div class="stat-value" style="font-size: 3rem;">98%</div>
-                <div class="stat-label" style="justify-content: center;"><?php echo __('stat_satisfaction'); ?></div>
+            <div class="stat-card">
+                <div class="stat-value">98%</div>
+                <div class="stat-label"><?php echo __('stat_satisfaction'); ?></div>
             </div>
-            <div class="stat-card" style="border-left: none; background: rgba(255,255,255,0.06); border-color: var(--border-color); text-align: center;">
-                <div class="stat-value" style="font-size: 3rem;">24/7</div>
-                <div class="stat-label" style="justify-content: center;"><?php echo __('stat_support'); ?></div>
+            <div class="stat-card">
+                <div class="stat-value">24/7</div>
+                <div class="stat-label"><?php echo __('stat_support'); ?></div>
             </div>
         </div>
     </div>
@@ -272,18 +284,28 @@ include "includes/header.php";
     let currentSlide = 0;
     const slides = document.querySelectorAll('.hero-slide');
     
+    const dots = document.querySelectorAll('.hero-dot');
+
     function showSlide(index) {
         slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
         if(slides[index]) slides[index].classList.add('active');
+        if(dots[index]) dots[index].classList.add('active');
+        currentSlide = index;
     }
     
     function nextSlide() {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
+        let next = (currentSlide + 1) % slides.length;
+        showSlide(next);
+    }
+
+    function prevSlide() {
+        let prev = (currentSlide - 1 + slides.length) % slides.length;
+        showSlide(prev);
     }
     
     if (slides.length > 0) {
-        setInterval(nextSlide, 5000);
+        setInterval(nextSlide, 6000);
         showSlide(0);
     }
 </script>

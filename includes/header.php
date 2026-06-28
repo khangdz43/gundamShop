@@ -15,9 +15,9 @@ if (isLoggedIn() && !isAdmin()) {
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <script>
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            if (savedTheme === 'light') {
-                document.documentElement.classList.add('light-theme');
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-theme');
             }
         })();
     </script>
@@ -33,13 +33,20 @@ if (isLoggedIn() && !isAdmin()) {
 <?php include __DIR__ . '/admin_nav.php'; ?>
 <?php else: ?>
 <header class="site-header">
+    <div class="announcement-bar">
+        🚀 Miễn phí vận chuyển cho đơn hàng Gunpla trên 2.000.000₫ <a href="<?php echo $basePath; ?>products.php?type=SALE">Xem Khuyến Mãi Ngay</a>
+    </div>
     <div class="header-container">
         <nav class="nav-main">
             <button type="button" class="nav-toggle" id="navToggle" aria-label="Menu">
                 <i class="fas fa-bars"></i>
             </button>
             <a href="<?php echo $basePath; ?>index.php" class="logo-link">
-                <img class="logo" src="<?php echo $basePath; ?>assets/images/LOGO.jpg" alt="Gundam Store" width="90">
+                <img class="logo" src="<?php echo $basePath; ?>assets/images/LOGO.jpg" alt="Gundam Store">
+                <div class="logo-text">
+                    <span class="logo-name">Gundam HUMG</span>
+                    <span class="logo-tagline">Gunpla Store</span>
+                </div>
             </a>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="<?php echo $basePath; ?>index.php"><i class="fas fa-home"></i> <?php echo __('home'); ?></a></li>
@@ -56,37 +63,37 @@ if (isLoggedIn() && !isAdmin()) {
         </form>
 
         <div class="header-actions">
-            <div class="lang-switcher" style="display:inline-flex;gap:4px;">
+            <div class="lang-switcher">
                 <?php
                 $curLang = currentLang();
                 ?>
-                <a href="<?php echo htmlspecialchars(langUrl('vi')); ?>" class="btn-header btn-sm <?php echo $curLang === 'vi' ? 'active-lang' : ''; ?>" title="<?php echo __('lang_vi'); ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">VI</a>
-                <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header btn-sm <?php echo $curLang === 'en' ? 'active-lang' : ''; ?>" title="<?php echo __('lang_en'); ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">EN</a>
+                <a href="<?php echo htmlspecialchars(langUrl('vi')); ?>" class="btn-header btn-sm <?php echo $curLang === 'vi' ? 'active-lang' : ''; ?>" title="<?php echo __('lang_vi'); ?>">VI</a>
+                <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header btn-sm <?php echo $curLang === 'en' ? 'active-lang' : ''; ?>" title="<?php echo __('lang_en'); ?>">EN</a>
             </div>
             <button type="button" class="theme-toggle" title="<?php echo __('theme_toggle'); ?>" aria-label="<?php echo __('theme_toggle'); ?>"><i class="fas fa-sun"></i></button>
             <?php if (isLoggedIn()): ?>
                 <!-- Notification Bell -->
-                <div class="notification-dropdown-container" style="position:relative; display:inline-block;">
-                    <button type="button" class="btn-header btn-notification" id="notificationBell" style="position:relative; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: var(--text-main); width:42px; height:42px; display:inline-flex; align-items:center; justify-content:center; border-radius:var(--radius-md); padding:0; cursor:pointer;">
+                <div class="notification-dropdown-container">
+                    <button type="button" class="btn-notification" id="notificationBell">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationBadge" style="display:none; position:absolute; top:-5px; right:-5px; background:var(--primary-red); color:white; border-radius:50%; width:18px; height:18px; font-size:10px; font-weight:bold; align-items:center; justify-content:center; box-shadow:0 0 5px rgba(255,0,0,0.5);">0</span>
+                        <span class="notification-badge" id="notificationBadge">0</span>
                     </button>
-                    <div class="dropdown-menu notification-menu" id="notificationDropdown" style="display:none; position:absolute; right:0; top:120%; width:320px; max-height:400px; overflow-y:auto; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); box-shadow:var(--shadow-main); z-index:1000; padding:10px 0; opacity:1; visibility:visible; transform:none;">
-                        <div class="notification-dropdown-header" style="padding:10px 15px; border-bottom:1px solid var(--border-color); font-weight:bold; color:var(--text-main); display:flex; justify-content:space-between; align-items:center; font-family:'Outfit';">
+                    <div class="dropdown-menu notification-menu" id="notificationDropdown">
+                        <div class="notification-dropdown-header">
                             <span><?php echo __('notifications_new'); ?></span>
                         </div>
-                        <div id="notificationList" style="max-height:300px; overflow-y:auto;">
+                        <div id="notificationList">
                             <div style="padding:15px; text-align:center; color:var(--text-muted);"><?php echo __('loading_notifications'); ?></div>
                         </div>
                     </div>
                 </div>
 
-                <a href="<?php echo $basePath; ?>cart.php" class="btn-header btn-cart">
-                     <i class="fas fa-shopping-cart"></i> <?php echo __('cart'); ?>
+                <a href="<?php echo $basePath; ?>cart.php" class="btn-cart">
+                     <i class="fas fa-shopping-cart"></i> <span class="cart-text"><?php echo __('cart'); ?></span>
                      <span class="cart-count" id="cartCount"><?php echo $cartCount; ?></span>
                 </a>
                 <div class="user-dropdown">
-                    <button class="btn-header btn-user"><i class="fas fa-user"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></button>
+                    <button class="btn-user"><i class="fas fa-user"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></button>
                     <div class="dropdown-menu">
                         <a href="<?php echo $basePath; ?>profile.php"><i class="fas fa-id-card"></i> <?php echo __('profile'); ?></a>
                         <a href="<?php echo $basePath; ?>orders.php"><i class="fas fa-receipt"></i> <?php echo __('orders'); ?></a>
@@ -94,11 +101,11 @@ if (isLoggedIn() && !isAdmin()) {
                     </div>
                 </div>
             <?php else: ?>
-                <a href="<?php echo $basePath; ?>cart.php" class="btn-header btn-cart">
-                    <i class="fas fa-shopping-cart"></i> <?php echo __('cart'); ?>
+                <a href="<?php echo $basePath; ?>cart.php" class="btn-cart">
+                    <i class="fas fa-shopping-cart"></i> <span class="cart-text"><?php echo __('cart'); ?></span>
                 </a>
                 <a href="<?php echo $basePath; ?>login.php" class="btn-header btn-primary"><i class="fas fa-sign-in-alt"></i> <?php echo __('login'); ?></a>
-                <a href="<?php echo $basePath; ?>register.php" class="btn-header btn-outline"><?php echo __('register'); ?></a>
+                <a href="<?php echo $basePath; ?>register.php" class="btn-header btn-outline"><i class="fas fa-user-plus"></i> <?php echo __('register'); ?></a>
             <?php endif; ?>
         </div>
     </div>

@@ -193,12 +193,12 @@ include 'includes/header.php';
                     </div>
                     <div id="couponMessage" style="margin-top:6px;font-size:0.85rem;color:var(--text-muted);"></div>
                 </div>
-                <button type="submit" class="btn btn-blue" style="width:100%"><i class="fas fa-check"></i> <?php echo __('confirm_order'); ?></button>
+                <button type="submit" class="btn btn-red" style="width:100%; padding: 12px; font-size: 1.1rem;"><i class="fas fa-check"></i> <?php echo __('confirm_order'); ?></button>
             </form>
         </div>
 
         <div class="card">
-            <h2 style="margin-top:0; border-bottom: 2px solid var(--primary-blue); padding-bottom: 12px;"><?php echo sprintf(__('order_items'), count($cartItems)); ?></h2>
+            <h2 style="margin-top:0; border-bottom: 2px solid var(--primary-red); padding-bottom: 12px;"><?php echo sprintf(__('order_items'), count($cartItems)); ?></h2>
             <?php foreach ($cartItems as $item): ?>
             <div class="checkout-item">
                 <img src="assets/images/<?php echo htmlspecialchars($item['image'] ?: 'LOGO.jpg'); ?>" class="checkout-item-img" onerror="this.src='assets/images/LOGO.jpg'">

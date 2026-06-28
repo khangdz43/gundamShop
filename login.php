@@ -56,9 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title><?php echo __('login_title'); ?> - Gundam Store</title>
     <script>
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            if (savedTheme === 'light') {
-                document.documentElement.classList.add('light-theme');
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-theme');
             }
         })();
     </script>
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header btn-sm <?php echo currentLang() === 'en' ? 'active-lang' : ''; ?>" style="padding:4px 8px;font-size:0.75rem;font-weight:700;">EN</a>
         </div>
         <div class="auth-brand">
-            <i class="fas fa-robot"></i>
+            <img src="assets/images/LOGO.jpg" alt="Logo" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
             <span>Gundam Store HUMG</span>
         </div>
         <h1><?php echo __('login_title'); ?></h1>
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span><?php echo __('remember_me'); ?></span>
                 </label>
             </div>
-            <button type="submit" class="btn btn-blue" style="width:100%"><?php echo __('login_title'); ?></button>
+            <button type="submit" class="btn btn-red" style="width:100%"><?php echo __('login_title'); ?></button>
         </form>
 
         <div class="auth-link">

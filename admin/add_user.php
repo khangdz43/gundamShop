@@ -111,7 +111,7 @@ include '../includes/header.php';
             </div>
 
             <div style="display:flex;gap:10px;">
-                <button type="submit" class="btn btn-blue"><i class="fas fa-user-plus"></i> Tạo tài khoản</button>
+                <button type="submit" class="btn btn-red"><i class="fas fa-user-plus"></i> Tạo tài khoản</button>
                 <a href="users.php" class="btn btn-gray">Quay lại</a>
             </div>
         </form>

@@ -127,7 +127,7 @@ include '../includes/header.php';
                         <input type="checkbox" name="is_active" value="1" checked> Kích hoạt ngay
                     </label>
                 </div>
-                <button type="submit" class="btn btn-blue" style="width:100%"><i class="fas fa-paper-plane"></i> Phát hành mã</button>
+                <button type="submit" class="btn btn-red" style="width:100%"><i class="fas fa-paper-plane"></i> Phát hành mã</button>
             </form>
         </div>
 

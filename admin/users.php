@@ -68,7 +68,7 @@ include '../includes/header.php';
     <!-- Actions -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="add_user.php" class="btn btn-blue"><i class="fas fa-user-plus"></i> Thêm nhân viên</a>
+            <a href="add_user.php" class="btn btn-red"><i class="fas fa-user-plus"></i> Thêm nhân viên</a>
             <a href="export_excel.php?type=users" class="btn btn-gray"><i class="fas fa-file-excel"></i> Xuất Excel</a>
         </div>
         <div>

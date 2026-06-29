@@ -34,7 +34,7 @@ if (isLoggedIn() && !isAdmin()) {
 <?php else: ?>
 <header class="site-header">
     <div class="announcement-bar">
-        🚀 Miễn phí vận chuyển cho đơn hàng Gunpla trên 2.000.000₫ <a href="<?php echo $basePath; ?>products.php?type=SALE">Xem Khuyến Mãi Ngay</a>
+        🚀 <?php echo __('promo_message'); ?> <a href="<?php echo $basePath; ?>products.php?type=SALE"><?php echo __('promo_view'); ?></a>
     </div>
     <div class="header-container">
         <nav class="nav-main">

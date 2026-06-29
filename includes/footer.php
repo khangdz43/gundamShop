@@ -18,7 +18,7 @@
             <a href="<?php echo $basePath ?? ''; ?>products.php"><?php echo __('products'); ?></a>
             <a href="<?php echo $basePath ?? ''; ?>products.php?type=SALE"><?php echo __('footer_promotions'); ?></a>
             <a href="<?php echo $basePath ?? ''; ?>orders.php"><?php echo __('footer_track_order'); ?></a>
-            <a href="#">Điều khoản bảo mật</a>
+            <a href="#"><?php echo __('footer_privacy_policy'); ?></a>
         </div>
         <div class="footer-col">
             <h4><?php echo __('footer_contact'); ?></h4>
@@ -26,10 +26,10 @@
             <p><i class="fas fa-phone"></i> 0969 946 335</p>
             <p><i class="fas fa-envelope"></i> gundamstore@humg.vn</p>
             
-            <h4 style="margin-top: 30px;">Đăng ký nhận tin</h4>
+            <h4 style="margin-top: 30px;"><?php echo __('footer_subscribe_title'); ?></h4>
             <form style="display:flex; gap:8px;" onsubmit="event.preventDefault();">
-                <input type="email" placeholder="Email của bạn..." class="form-control" style="background:#222; border-color:#333; color:#fff;">
-                <button class="btn btn-red btn-sm" style="padding: 0 16px;" type="button"><i class="fas fa-paper-plane"></i></button>
+                <input type="email" placeholder="<?php echo __('footer_subscribe_placeholder'); ?>" class="form-control" style="background:#222; border-color:#333; color:#fff;">
+                <button class="btn btn-red btn-sm" style="padding: 0 16px;" type="button"><i class="fas fa-paper-plane"></i> <?php echo __('footer_subscribe_submit'); ?></button>
             </form>
         </div>
     </div>

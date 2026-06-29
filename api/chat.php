@@ -92,7 +92,28 @@ function saveChatMessage($conn, $sessionId, $userId, $role, $message) {
 }
 
 function localGundamReply($message) {
+    $lang = currentLang();
     $text = mb_strtolower($message, 'UTF-8');
+
+    if ($lang === 'en') {
+        if (strpos($text, 'ship') !== false || strpos($text, 'giao') !== false) {
+            return 'We ship nationwide. Orders over 2,000,000₫ qualify for free shipping, otherwise the fee is 30,000₫. You can pay with COD or bank transfer.';
+        }
+
+        if (strpos($text, 'hg') !== false || strpos($text, 'rg') !== false || strpos($text, 'mg') !== false || strpos($text, 'pg') !== false) {
+            return 'HG is easy to build and budget-friendly for beginners. RG is small with high detail. MG is 1/100 scale and great for display. PG is the largest, most detailed option for experienced builders.';
+        }
+
+        if (strpos($text, 'new') !== false || strpos($text, 'beginner') !== false || strpos($text, 'start') !== false) {
+            return 'If you are new to Gunpla, I recommend starting with HG or SD models because they are easier to assemble and more affordable. Once you gain confidence, try RG or MG.';
+        }
+
+        if (strpos($text, 'sale') !== false || strpos($text, 'discount') !== false || strpos($text, 'promotion') !== false) {
+            return 'You can browse sale items in the products on sale section. Pick a model from a series you like and a budget that works for you.';
+        }
+
+        return 'I am Gundam Store HUMG AI assistant. Ask me about choosing HG/RG/MG/PG models, beginner kits, shipping, payment, or sale items.';
+    }
 
     if (strpos($text, 'ship') !== false || strpos($text, 'giao') !== false) {
         return 'Shop ho tro giao hang toan quoc. Don tu 2.000.000d duoc mien phi ship, don thap hon phi ship 30.000d. Ban co the thanh toan COD hoac chuyen khoan.';
@@ -148,6 +169,7 @@ if ($sessionId) {
 $config = require __DIR__ . '/../config/gemini.php';
 $apiKey = $config['api_key'];
 $model = $config['model'];
+$lang = currentLang();
 
 function respondWithReply($conn, $sessionId, $userId, $message, $reply) {
     if ($sessionId) {
@@ -172,10 +194,12 @@ $contents[] = [
     'parts' => [['text' => $message]]
 ];
 
+$languageInstruction = $lang === 'en' ? 'Please answer in English.' : 'Hãy trả lời bằng tiếng Việt.';
 $payload = [
     'system_instruction' => [
         'parts' => [[
             'text' => $config['system_prompt']
+                . ' ' . $languageInstruction
                 . ' Neu lich su chat cho thay so thich, ngan sach, cap do lap rap cua khach, hay dua tren do de tu van lan tiep theo.'
         ]]
     ],

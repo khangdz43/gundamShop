@@ -384,10 +384,8 @@ a:hover {
     background: #4f7bff;
 }
 
-/* ===== STYLE CHO LINK SẢN PHẨM ===== */
-/* XÓA TẤT CẢ CÁC QUY TẮC SAU ĐÂY VÀ THAY THẾ BẰNG: */
-
-/* Đảm bảo link trong sản phẩm hiển thị đúng */
+/* ===== PRODUCT LINK STYLE ===== */
+/* Make sure product links display correctly */
 .item a {
     display: block;
     text-decoration: none;
@@ -395,9 +393,9 @@ a:hover {
     overflow: hidden;
 }
 
-/* Overlay khi hover */
+/* Overlay on hover */
 .item a::after {
-    content: "Xem chi tiết";
+    content: "View detail";
     position: absolute;
     top: 0;
     left: 0;

@@ -21,14 +21,14 @@ if (!$product) {
 // Xử lý gửi đánh giá mới
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
     if (!isLoggedIn()) {
-        $review_error = 'Vui lòng đăng nhập để đánh giá.';
+        $review_error = __('review_login_required');
     } else {
         $user_id = $_SESSION['user_id'];
         $rating = isset($_POST['rating']) ? (int)$_POST['rating'] : 5;
         $comment = trim($_POST['comment'] ?? '');
         
         if ($rating < 1 || $rating > 5) {
-            $review_error = 'Số sao đánh giá phải từ 1 đến 5.';
+            $review_error = __('review_rating_invalid');
         } else {
             $stmt = $conn->prepare("INSERT INTO reviews (product_id, user_id, rating, comment) VALUES (?, ?, ?, ?)");
             $stmt->bind_param("iiis", $id, $user_id, $rating, $comment);
@@ -36,9 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
                 header("Location: products_detail.php?id=$id&review_success=1");
                 exit();
             } else {
-                $review_error = 'Có lỗi xảy ra, vui lòng thử lại sau.';
+                $review_error = __('review_submit_error');
             }
-            $stmt->close();
         }
     }
 }
@@ -106,25 +105,22 @@ include 'includes/header.php';
                         for ($i = 1; $i <= 5; $i++) {
                             echo '<i class="far fa-star"></i>';
                         }
-                        echo ' <span style="color: var(--text-muted); margin-left: 4px;">Chưa có đánh giá</span>';
+                        echo ' <span style="color: var(--text-muted); margin-left: 4px;">' . __('no_reviews_yet') . '</span>';
                     }
                     ?>
                 </div>
-                <span style="color: var(--text-muted);">| <?php echo $count_reviews; ?> đánh giá</span>
+                <span style="color: var(--text-muted);">| <?php echo $count_reviews . ' ' . __('reviews'); ?></span>
             </div>
             
             <div class="detail-meta-row">
                 <span class="product-type"><?= htmlspecialchars($product['type']) ?></span>
                 <span style="color: var(--text-muted); font-size: 0.9rem;">
                     <i class="fas fa-barcode" style="color: var(--text-muted); margin-right: 4px;"></i>
-                    Mã: GUNDAM-<?php echo str_pad($product['id'], 3, '0', STR_PAD_LEFT); ?>
+                    <?php echo __('order_code_label'); ?>: GUNDAM-<?php echo str_pad($product['id'], 3, '0', STR_PAD_LEFT); ?>
                 </span>
                 <span class="stock-badge <?php echo $product['stock'] > 0 ? 'in-stock' : 'out-stock'; ?>">
-                    <?php echo $product['stock'] > 0 ? 'Còn hàng (' . $product['stock'] . ' SP)' : 'Hết hàng'; ?>
+                    <?php echo $product['stock'] > 0 ? sprintf(__('stocks_left'), $product['stock']) : __('sold_out'); ?>
                 </span>
-            </div>
-            
-            <!-- Price Box -->
             <div class="detail-price-box">
                 <div class="detail-current-price"><?php echo $formatted_price; ?></div>
                 <?php if($formatted_old_price): ?>
@@ -135,16 +131,16 @@ include 'includes/header.php';
             
             <!-- Description -->
             <div class="detail-desc">
-                <strong>Mô tả sản phẩm:</strong>
+                <strong><?php echo __('product_description'); ?>:</strong>
                 <p style="margin-top: 8px; color: var(--text-muted);">
-                    <?php echo nl2br(htmlspecialchars($product['description'] ?: 'Mô hình Gundam chính hãng Bandai. Chất lượng Nhật Bản, độ chi tiết cao, màu sắc sắc nét.')); ?>
+                    <?php echo nl2br(htmlspecialchars($product['description'] ?: __('product_description'))); ?>
                 </p>
             </div>
             
             <!-- Quantity Control -->
             <?php if($product['stock'] > 0): ?>
             <div class="detail-qty-row">
-                <strong style="color: var(--text-main);">Số lượng:</strong>
+                <strong style="color: var(--text-main);"><?php echo __('quantity'); ?>:</strong>
                 <div class="qty-control">
                     <button class="qty-btn" type="button" onclick="decreaseQuantity()">-</button>
                     <input type="number" id="quantity" class="qty-input" value="1" min="1" max="<?php echo min(99, $product['stock']); ?>" readonly>
@@ -155,16 +151,16 @@ include 'includes/header.php';
             <!-- Action Buttons -->
             <div class="detail-actions">
                 <button type="button" class="btn btn-blue" onclick="addToCart(<?php echo $product['id']; ?>, getQuantity())">
-                    <i class="fas fa-cart-plus"></i> THÊM VÀO GIỎ HÀNG
+                    <i class="fas fa-cart-plus"></i> <?php echo __('add_to_cart'); ?>
                 </button>
                 <button type="button" class="btn btn-red" onclick="buyNow(<?php echo $product['id']; ?>)">
-                    <i class="fas fa-bolt"></i> MUA NGAY
+                    <i class="fas fa-bolt"></i> <?php echo __('buy_now'); ?>
                 </button>
             </div>
             <?php else: ?>
             <div style="margin: 20px 0;">
                 <button class="btn btn-gray" style="width: 100%; cursor: not-allowed;" disabled>
-                    <i class="fas fa-ban"></i> SẢN PHẨM HẾT HÀNG
+                    <i class="fas fa-ban"></i> <?php echo __('sold_out'); ?>
                 </button>
             </div>
             <?php endif; ?>
@@ -173,15 +169,15 @@ include 'includes/header.php';
             <div class="product-meta" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin-top: auto;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0; border-bottom: 1px solid var(--border-color)">
-                        <span style="color: var(--text-muted)">Phân khúc:</span>
+                        <span style="color: var(--text-muted)"><?php echo __('product_segment'); ?>:</span>
                         <strong><?php echo htmlspecialchars($product['type']); ?></strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0; border-bottom: 1px solid var(--border-color)">
-                        <span style="color: var(--text-muted)">Danh mục:</span>
+                        <span style="color: var(--text-muted)"><?php echo __('product_category'); ?>:</span>
                         <strong><?php echo htmlspecialchars($product['category']); ?></strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0;">
-                        <span style="color: var(--text-muted)">Tỉ lệ:</span>
+                        <span style="color: var(--text-muted)"><?php echo __('product_scale'); ?>:</span>
                         <strong>
                             <?php 
                                 if($product['type'] == 'HG' || $product['type'] == 'RG') echo '1/144';
@@ -192,7 +188,7 @@ include 'includes/header.php';
                         </strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0;">
-                        <span style="color: var(--text-muted)">Hãng:</span>
+                        <span style="color: var(--text-muted)"><?php echo __('product_brand'); ?>:</span>
                         <strong>Bandai Spirits</strong>
                     </div>
                 </div>
@@ -203,7 +199,7 @@ include 'includes/header.php';
     <!-- REVIEWS SECTION -->
     <div class="reviews-section" style="margin: 50px 0; padding: 30px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius);">
         <h2 class="section-title" style="margin-bottom: 25px; font-size: 1.5rem; color: var(--text-main); border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; display: inline-block;">
-            ĐÁNH GIÁ SẢN PHẨM (<?php echo $count_reviews; ?>)
+            <?php echo __('product_reviews_title') . ' (' . $count_reviews . ')'; ?>
         </h2>
         
         <style>
@@ -255,19 +251,18 @@ include 'includes/header.php';
                 <?php else: ?>
                     <div style="text-align: center; padding: 40px; color: var(--text-muted);">
                         <i class="far fa-comments" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
-                        <p>Chưa có đánh giá nào cho sản phẩm này.</p>
-                        <p style="font-size: 0.9rem; margin-top: 5px;">Hãy là người đầu tiên đánh giá sản phẩm!</p>
+                        <p><?php echo __('no_reviews_yet'); ?> <?php echo __('be_first_review'); ?></p>
                     </div>
                 <?php endif; ?>
             </div>
             
             <!-- Right: Add Review Form -->
             <div class="add-review-box" style="background: var(--bg-body); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color);">
-                <h3 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem;">Viết đánh giá của bạn</h3>
+                <h3 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem;"><?php echo __('write_review'); ?></h3>
                 
                 <?php if (isset($_GET['review_success'])): ?>
                     <div class="alert alert-success" style="background: rgba(40, 167, 69, 0.1); border: 1px solid #28a745; color: #28a745; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;">
-                        Cảm ơn bạn đã gửi đánh giá thành công!
+                        <?php echo __('review_submit_success'); ?>
                     </div>
                 <?php endif; ?>
                 
@@ -282,7 +277,7 @@ include 'includes/header.php';
                         <input type="hidden" name="submit_review" value="1">
                         
                         <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">Chọn mức đánh giá:</label>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php echo __('product_reviews_title'); ?>:</label>
                             <div class="star-rating-input" style="display: flex; gap: 8px; font-size: 1.5rem; color: #ffb800; cursor: pointer;">
                                 <i class="far fa-star rating-star" data-value="1"></i>
                                 <i class="far fa-star rating-star" data-value="2"></i>
@@ -294,11 +289,11 @@ include 'includes/header.php';
                         </div>
                         
                         <div class="form-group" style="margin-bottom: 20px;">
-                            <label for="comment" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">Nội dung đánh giá:</label>
-                            <textarea name="comment" id="comment" required class="form-control" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..." style="width: 100%; min-height: 120px; padding: 10px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); resize: vertical; box-sizing: border-box;"></textarea>
+                            <label for="comment" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php echo __('description'); ?>:</label>
+                            <textarea name="comment" id="comment" required class="form-control" placeholder="<?php echo __('chatbot_input_placeholder'); ?>" style="width: 100%; min-height: 120px; padding: 10px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); resize: vertical; box-sizing: border-box;"></textarea>
                         </div>
                         
-                        <button type="submit" class="btn btn-blue" style="width: 100%; padding: 12px; font-weight: bold; border-radius: 6px;">GỬI ĐÁNH GIÁ</button>
+                        <button type="submit" class="btn btn-blue" style="width: 100%; padding: 12px; font-weight: bold; border-radius: 6px;"><?php echo __('review_submit_success'); ?></button>
                     </form>
                     
                     <script>
@@ -341,8 +336,8 @@ include 'includes/header.php';
                     </script>
                 <?php else: ?>
                     <div style="text-align: center; padding: 30px; color: var(--text-muted);">
-                        <p style="margin-bottom: 15px;">Bạn cần đăng nhập để gửi đánh giá cho sản phẩm này.</p>
-                        <a href="login.php" class="btn btn-blue" style="display: inline-block; padding: 10px 24px; font-weight: bold; border-radius: 6px; text-decoration: none;">Đăng nhập ngay</a>
+                        <p style="margin-bottom: 15px;"><?php echo __('review_login_required'); ?></p>
+                        <a href="login.php" class="btn btn-blue" style="display: inline-block; padding: 10px 24px; font-weight: bold; border-radius: 6px; text-decoration: none;"><?php echo __('login'); ?></a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -351,7 +346,7 @@ include 'includes/header.php';
     
     <!-- Related Products -->
     <div class="related-section">
-        <h2 class="section-title">SẢN PHẨM LIÊN QUAN</h2>
+        <h2 class="section-title"><?php echo __('related_products'); ?></h2>
         <div class="products-grid" style="margin-top: 20px;">
             <?php
             // Lấy sản phẩm cùng loại
@@ -396,8 +391,8 @@ include 'includes/header.php';
                         <?php endif; ?>
                     </div>
                     <div class="product-actions">
-                        <a href="products_detail.php?id=<?= $related['id'] ?>" class="btn-detail">Chi tiết</a>
-                        <button onclick="addToCart(<?= $related['id'] ?>)" class="btn-cart-add" title="Thêm vào giỏ hàng">
+                        <a href="products_detail.php?id=<?= $related['id'] ?>" class="btn-detail"><?php echo __('btn_detail'); ?></a>
+                        <button onclick="addToCart(<?= $related['id'] ?>)" class="btn-cart-add" title="<?php echo __('add_to_cart'); ?>">
                             <i class="fas fa-shopping-cart"></i>
                         </button>
                     </div>
@@ -461,7 +456,7 @@ include 'includes/header.php';
                 alert(data.message);
             }
         })
-        .catch(() => alert('Có lỗi xảy ra. Vui lòng thử lại!'));
+        .catch(() => alert('<?php echo __('err_generic'); ?>'));
     }
 </script>
 

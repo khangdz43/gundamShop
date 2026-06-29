@@ -224,12 +224,12 @@ include 'includes/header.php';
         <div class="filter-status-bar">
             <span class="filter-count-text">
                 <i class="fas fa-box"></i> 
-                <strong><?php echo $total_products; ?></strong> sản phẩm
+                <?php echo sprintf(__('products_count'), $total_products); ?>
                 <?php if ($price_min !== null || $price_max !== null): ?>
                 <span class="filter-tag">
                     <?php if($price_min && $price_max): echo number_format($price_min,0,'.','.') . '₫ – ' . number_format($price_max,0,'.','.') . '₫';
-                    elseif($price_min): echo 'Từ ' . number_format($price_min,0,'.','.') . '₫';
-                    else: echo 'Đến ' . number_format($price_max,0,'.','.') . '₫'; ?>
+                    elseif($price_min): echo __('price_from') . ' ' . number_format($price_min,0,'.','.') . '₫';
+                    else: echo __('price_to') . ' ' . number_format($price_max,0,'.','.') . '₫'; ?>
                     <?php endif; ?>
                     <a href="products.php<?php echo $type_filter ? '?type='.$type_filter : ''; ?>" style="color:inherit;margin-left:4px;"><i class="fas fa-times"></i></a>
                 </span>
@@ -237,7 +237,7 @@ include 'includes/header.php';
             </span>
             <!-- Mobile filter toggle -->
             <button class="mobile-filter-toggle" onclick="toggleMobileFilter()">
-                <i class="fas fa-sliders-h"></i> Bộ lọc
+                <i class="fas fa-sliders-h"></i> <?php echo __('filter'); ?>
             </button>
         </div>
 
@@ -274,8 +274,8 @@ include 'includes/header.php';
                         <?php endif; ?>
                     </div>
                     <div class="product-actions">
-                        <a href="products_detail.php?id=<?= $row['id'] ?>" class="btn-detail">Chi tiết</a>
-                        <button onclick="addToCart(<?= $row['id'] ?>)" class="btn-cart-add" title="Thêm vào giỏ hàng">
+                        <a href="products_detail.php?id=<?= $row['id'] ?>" class="btn-detail"><?php echo __('btn_detail'); ?></a>
+                        <button onclick="addToCart(<?= $row['id'] ?>)" class="btn-cart-add" title="<?php echo __('add_to_cart'); ?>">
                             <i class="fas fa-shopping-cart"></i>
                         </button>
                     </div>
@@ -318,9 +318,9 @@ include 'includes/header.php';
         <?php else: ?>
         <div class="card" style="text-align: center; padding: 60px 20px;">
             <i class="fas fa-box-open" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 20px;"></i>
-            <h3 style="font-size: 1.5rem; margin-bottom: 10px;">Không tìm thấy mô hình nào</h3>
-            <p style="color: var(--text-muted); margin-bottom: 25px;">Thử thay đổi bộ lọc hoặc khoảng giá.</p>
-            <a href="products.php" class="btn btn-blue" style="display: inline-flex;"><i class="fas fa-redo"></i> Xem tất cả mô hình</a>
+            <h3 style="font-size: 1.5rem; margin-bottom: 10px;"><?php echo __('no_products_found'); ?></h3>
+            <p style="color: var(--text-muted); margin-bottom: 25px;"><?php echo __('try_change_filters'); ?></p>
+            <a href="products.php" class="btn btn-blue" style="display: inline-flex;"><i class="fas fa-redo"></i> <?php echo __('view_all_products'); ?></a>
         </div>
         <?php endif; ?>
     </div><!-- end products col -->

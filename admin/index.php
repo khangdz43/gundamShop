@@ -38,23 +38,23 @@ include '../includes/header.php';
 
     <div class="admin-stats">
         <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-robot"></i> Sản phẩm</div>
+            <div class="stat-label"><i class="fas fa-robot"></i> <?php echo __('stat_products'); ?></div>
             <div class="stat-value"><?php echo $stats['products']; ?></div>
         </div>
         <div class="stat-card green">
-            <div class="stat-label"><i class="fas fa-users"></i> Khách hàng</div>
+            <div class="stat-label"><i class="fas fa-users"></i> <?php echo __('stat_customers'); ?></div>
             <div class="stat-value"><?php echo $stats['users']; ?></div>
         </div>
         <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-shopping-bag"></i> Đơn hàng</div>
+            <div class="stat-label"><i class="fas fa-shopping-bag"></i> <?php echo __('orders'); ?></div>
             <div class="stat-value"><?php echo $stats['orders']; ?></div>
         </div>
         <div class="stat-card red">
-            <div class="stat-label"><i class="fas fa-clock"></i> Chờ xác nhận</div>
+            <div class="stat-label"><i class="fas fa-clock"></i> <?php echo __('status_pending'); ?></div>
             <div class="stat-value"><?php echo $stats['pending']; ?></div>
         </div>
         <div class="stat-card green">
-            <div class="stat-label"><i class="fas fa-dollar-sign"></i> Doanh thu</div>
+            <div class="stat-label"><i class="fas fa-dollar-sign"></i> <?php echo __('revenue'); ?></div>
             <div class="stat-value" style="font-size:1.4rem"><?php echo formatPrice($stats['revenue']); ?></div>
         </div>
         <div class="stat-card">
@@ -71,15 +71,15 @@ include '../includes/header.php';
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px; align-items: start;">
         <div class="card" style="margin-top: 0;">
             <h2 style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
-                Đơn hàng gần đây
-                <a href="orders.php" class="btn btn-blue btn-sm">Xem tất cả</a>
+                <?php echo __('recent_orders'); ?>
+                <a href="orders.php" class="btn btn-blue btn-sm"><?php echo __('view_all'); ?></a>
             </h2>
             <?php if (empty($recentOrders)): ?>
-                <p style="color:var(--text-gray)">Chưa có đơn hàng</p>
+                <p style="color:var(--text-gray)"><?php echo __('no_recent_orders'); ?></p>
             <?php else: ?>
                 <table class="data-table">
                     <thead>
-                        <tr><th>Mã</th><th>Khách</th><th>Tổng</th><th>Trạng thái</th><th>Ngày</th><th></th></tr>
+                        <tr><th><?php echo __('order_code_label'); ?></th><th><?php echo __('customer_short'); ?></th><th><?php echo __('total'); ?></th><th><?php echo __('status'); ?></th><th><?php echo __('date'); ?></th><th></th></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($recentOrders as $o): ?>
@@ -89,7 +89,7 @@ include '../includes/header.php';
                             <td><?php echo formatPrice($o['total']); ?></td>
                             <td><span class="status-badge <?php echo getOrderStatusClass($o['status']); ?>"><?php echo getOrderStatusLabel($o['status']); ?></span></td>
                             <td><?php echo date('d/m/Y H:i', strtotime($o['created_at'])); ?></td>
-                            <td><a href="order_detail.php?id=<?php echo $o['id']; ?>" class="btn btn-blue btn-sm">Chi tiết</a></td>
+                            <td><a href="order_detail.php?id=<?php echo $o['id']; ?>" class="btn btn-blue btn-sm"><?php echo __('detail'); ?></a></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -98,7 +98,7 @@ include '../includes/header.php';
         </div>
 
         <div class="card" style="margin-top: 0; display: flex; flex-direction: column; align-items: center;">
-            <h2 style="margin-top:0; width: 100%; text-align: left;"><i class="fas fa-chart-pie"></i> Tỉ lệ đơn hàng</h2>
+            <h2 style="margin-top:0; width: 100%; text-align: left;"><i class="fas fa-chart-pie"></i> <?php echo __('order_ratio'); ?></h2>
             <div style="width: 100%; max-width: 250px; margin: 10px auto;">
                 <canvas id="orderChart"></canvas>
             </div>
@@ -108,6 +108,11 @@ include '../includes/header.php';
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    const chartLabels = {
+        sold: <?php echo json_encode(__('chart_sold')); ?>,
+        unsold: <?php echo json_encode(__('chart_unsold')); ?>,
+        noData: <?php echo json_encode(__('chart_no_data')); ?>
+    };
     const ctx = document.getElementById('orderChart').getContext('2d');
     const sold = <?php echo (int)$soldCount; ?>;
     const unsold = <?php echo (int)$unsoldCount; ?>;
@@ -116,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.font = "16px sans-serif";
         ctx.fillStyle = "#aaa";
         ctx.textAlign = "center";
-        ctx.fillText("Không có dữ liệu đơn hàng", 125, 125);
+        ctx.fillText(chartLabels.noData, 125, 125);
         return;
     }
     
@@ -126,7 +131,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Đã bán (Đã giao)', 'Chưa bán (Chờ/Hủy/Khác)'],
+            labels: [chartLabels.sold, chartLabels.unsold],
             datasets: [{
                 data: [sold, unsold],
                 backgroundColor: ['#28a745', '#dc3545'],

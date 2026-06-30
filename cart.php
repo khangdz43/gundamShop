@@ -87,6 +87,24 @@ foreach ($cartItems as $item) {
 }
 
 $shipping = calculateShippingFee($selectedTotal);
+$cartDiscount = 0;
+$cartCouponCode = '';
+$cartCouponMsg = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apply_coupon'])) {
+    $cartCouponCode = strtoupper(trim($_POST['coupon_code'] ?? ''));
+    if ($cartCouponCode !== '') {
+        $cr = validateCoupon($conn, $cartCouponCode, $selectedTotal);
+        if ($cr['valid']) {
+            $cartDiscount = $cr['discount'];
+            $cartCouponMsg = __('coupon_applied');
+        } else {
+            $cartCouponMsg = $cr['message'] ?? __('coupon_invalid');
+        }
+    } else {
+        $cartCouponMsg = __('coupon_invalid');
+    }
+}
 $flash = getFlash('cart');
 $pageTitle = __('cart_title') . ' - Gundam Store';
 include 'includes/header.php';
@@ -174,11 +192,15 @@ include 'includes/header.php';
                         <span style="color: var(--text-muted)"><?php echo __('subtotal'); ?></span>
                         <strong id="cartSubtotal"><?php echo formatPrice($selectedTotal); ?></strong>
                     </div>
+                    <div class="summary-row" id="cartDiscountRow" style="<?php echo $cartDiscount > 0 ? '' : 'display:none;'; ?>">
+                        <span style="color: var(--text-muted)"><?php echo __('discount'); ?></span>
+                        <strong id="cartDiscount" style="color:var(--accent-emerald);">-<?php echo formatPrice($cartDiscount); ?></strong>
+                    </div>
                     <div class="summary-row">
                         <span style="color: var(--text-muted)"><?php echo __('shipping'); ?></span>
                         <strong id="cartShipping"><?php echo $shipping > 0 ? formatPrice($shipping) : __('free_shipping'); ?></strong>
                     </div>
-                    <?php if ($selectedTotal < 2000000): ?>
+                    <?php if ($selectedTotal < 2000000 && $selectedTotal > 0): ?>
                         <p id="freeShipNote" style="font-size: 0.8rem; color: var(--text-muted); margin-top: -5px; margin-bottom: 15px;">
                             <?php echo __('free_ship_note'); ?>
                         </p>
@@ -189,8 +211,15 @@ include 'includes/header.php';
                     <?php endif; ?>
                     <div class="summary-row total">
                         <span><?php echo __('grand_total'); ?></span>
-                        <strong id="cartGrandTotal"><?php echo formatPrice($selectedTotal + $shipping); ?></strong>
+                        <strong id="cartGrandTotal"><?php echo formatPrice(max(0, $selectedTotal - $cartDiscount + $shipping)); ?></strong>
                     </div>
+                    <form method="POST" style="display:flex;gap:8px;margin-top:15px;">
+                        <input type="text" name="coupon_code" class="form-control" placeholder="Mã giảm giá" value="<?php echo htmlspecialchars($cartCouponCode); ?>" style="text-transform:uppercase;flex:1;">
+                        <button type="submit" name="apply_coupon" class="btn btn-gray"><?php echo __('apply_coupon'); ?></button>
+                    </form>
+                    <?php if (!empty($cartCouponMsg)): ?>
+                        <p id="cartCouponMsg" style="margin-top:8px;font-size:0.85rem;<?php echo strpos($cartCouponMsg, 'đã') !== false ? 'color:var(--accent-emerald)' : 'color:var(--primary-red)'; ?>"><?php echo htmlspecialchars($cartCouponMsg); ?></p>
+                    <?php endif; ?>
                     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 25px;">
                         <button type="button" id="btnCheckout" class="btn btn-blue" style="width:100%"><i class="fas fa-credit-card"></i> <?php echo __('checkout'); ?></button>
                         <a href="products.php" class="btn btn-gray" style="width:100%"><i class="fas fa-arrow-left"></i> <?php echo __('cart_continue'); ?></a>

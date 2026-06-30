@@ -114,9 +114,12 @@ if ($curlErr) {
 $result = json_decode($response, true);
 
 if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+    $reply = $result['candidates'][0]['content']['parts'][0]['text'];
+    $reply = preg_replace('/!\[[^\]]*\]\([^)]*\)/', '', $reply);
+    $reply = preg_replace('/<img[^>]*>/i', '', $reply);
     echo json_encode([
         'success' => true,
-        'reply'   => $result['candidates'][0]['content']['parts'][0]['text']
+        'reply'   => $reply
     ], JSON_UNESCAPED_UNICODE);
 } elseif (isset($result['error'])) {
     echo json_encode([

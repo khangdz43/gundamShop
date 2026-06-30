@@ -83,12 +83,12 @@ $sql = "SELECT r.*, o.order_code, o.total, u.username
 $result = $conn->query($sql);
 $returns = $result->fetch_all(MYSQLI_ASSOC);
 
-$pageTitle = 'Quản lý đổi trả - Gundam Store';
+$pageTitle = __('admin_returns_page');
 include '../includes/header.php';
 ?>
 
 <div class="container">
-    <h1 class="page-title">QUẢN LÝ ĐỔI TRẢ</h1>
+    <h1 class="page-title"><?php echo __('admin_returns_title'); ?></h1>
 
     <?php if (!empty($message)): ?>
         <div class="alert <?php echo $success ? 'alert-success' : 'alert-error'; ?>" style="margin-bottom: 20px;">
@@ -101,17 +101,17 @@ include '../includes/header.php';
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Mã đơn</th>
-                    <th>Khách hàng</th>
-                    <th>Lý do</th>
-                    <th>Trạng thái</th>
-                    <th>Ngày yêu cầu</th>
-                    <th>Thao tác</th>
+                    <th><?php echo __('order_code'); ?></th>
+                    <th><?php echo __('customer'); ?></th>
+                    <th><?php echo __('reason'); ?></th>
+                    <th><?php echo __('status'); ?></th>
+                    <th><?php echo __('request_date'); ?></th>
+                    <th><?php echo __('actions'); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($returns)): ?>
-                    <tr><td colspan="7" style="text-align:center;color:var(--text-gray)">Không có yêu cầu đổi trả</td></tr>
+                    <tr><td colspan="7" style="text-align:center;color:var(--text-gray)"><?php echo __('no_returns'); ?></td></tr>
                 <?php else: ?>
                     <?php foreach ($returns as $r): ?>
                     <tr>
@@ -121,20 +121,20 @@ include '../includes/header.php';
                         <td><?php echo htmlspecialchars($r['reason']); ?></td>
                         <td>
                             <?php if ($r['status'] === 'pending'): ?>
-                                <span class="status-badge status-pending">Chờ xử lý</span>
+                                <span class="status-badge status-pending"><?php echo __('return_pending'); ?></span>
                             <?php elseif ($r['status'] === 'approved'): ?>
-                                <span class="status-badge status-delivered">Chấp nhận</span>
+                                <span class="status-badge status-delivered"><?php echo __('return_approved'); ?></span>
                             <?php else: ?>
-                                <span class="status-badge status-cancelled">Từ chối</span>
+                                <span class="status-badge status-cancelled"><?php echo __('return_rejected'); ?></span>
                             <?php endif; ?>
                         </td>
                         <td><?php echo date('d/m/Y H:i', strtotime($r['created_at'])); ?></td>
                         <td>
                             <?php if ($r['status'] === 'pending'): ?>
-                                <button type="button" class="btn btn-blue btn-sm" onclick='showProcessModal(<?php echo json_encode($r); ?>)'>Xử lý</button>
+                                <button type="button" class="btn btn-blue btn-sm" onclick='showProcessModal(<?php echo json_encode($r); ?>)'><?php echo __('process'); ?></button>
                             <?php else: ?>
                                 <span style="color:var(--text-gray); font-size:0.9rem;">
-                                    <?php echo htmlspecialchars($r['admin_comment'] ?: 'Không có phản hồi'); ?>
+                                    <?php echo htmlspecialchars($r['admin_comment'] ?: __('no_reply')); ?>
                                 </span>
                             <?php endif; ?>
                         </td>

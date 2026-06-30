@@ -62,15 +62,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         })();
     </script>
+    <?php include 'includes/lang_head.php'; ?>
     <link rel="stylesheet" href="assets/app.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <div class="auth-page">
     <div class="auth-card">
-        <div style="display:flex;justify-content:flex-end;gap:4px;margin-bottom:10px;">
-            <a href="<?php echo htmlspecialchars(langUrl('vi')); ?>" class="btn-header btn-sm <?php echo currentLang() === 'vi' ? 'active-lang' : ''; ?>" style="padding:4px 8px;font-size:0.75rem;font-weight:700;">VI</a>
-            <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header btn-sm <?php echo currentLang() === 'en' ? 'active-lang' : ''; ?>" style="padding:4px 8px;font-size:0.75rem;font-weight:700;">EN</a>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+            <?php include 'includes/lang_switcher.php'; ?>
         </div>
         <div class="auth-brand">
             <i class="fas fa-robot"></i>
@@ -113,6 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
+<script src="assets/app.js"></script>
 <script>
 document.getElementById('togglePassword').addEventListener('click', function() {
     const passwordInput = document.getElementById('password');

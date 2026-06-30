@@ -21,12 +21,15 @@ if (isLoggedIn() && !isAdmin()) {
             }
         })();
     </script>
+    <?php include __DIR__ . '/lang_head.php'; ?>
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/style.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/app.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="<?php echo $basePath; ?>assets/images/favicon.ico">
 </head>
-<body data-base-path="<?php echo htmlspecialchars($basePath); ?>">
+<body data-base-path="<?php echo htmlspecialchars($basePath); ?>"
+      data-i18n-no-notifications="<?php echo htmlspecialchars(__('no_notifications')); ?>"
+      data-i18n-load-error="<?php echo htmlspecialchars(__('load_notifications_error')); ?>">
 <?php if (isAdmin()): ?>
 <?php include __DIR__ . '/admin_nav.php'; ?>
 <?php elseif (isEmployee()): ?>
@@ -56,13 +59,7 @@ if (isLoggedIn() && !isAdmin()) {
         </form>
 
         <div class="header-actions">
-            <div class="lang-switcher" style="display:inline-flex;gap:4px;">
-                <?php
-                $curLang = currentLang();
-                ?>
-                <a href="<?php echo htmlspecialchars(langUrl('vi')); ?>" class="btn-header btn-sm <?php echo $curLang === 'vi' ? 'active-lang' : ''; ?>" title="<?php echo __('lang_vi'); ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">VI</a>
-                <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header btn-sm <?php echo $curLang === 'en' ? 'active-lang' : ''; ?>" title="<?php echo __('lang_en'); ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">EN</a>
-            </div>
+            <?php include __DIR__ . '/lang_switcher.php'; ?>
             <button type="button" class="theme-toggle" title="<?php echo __('theme_toggle'); ?>" aria-label="<?php echo __('theme_toggle'); ?>"><i class="fas fa-sun"></i></button>
             <?php if (isLoggedIn()): ?>
                 <!-- Notification Bell -->

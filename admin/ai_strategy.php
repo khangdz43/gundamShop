@@ -61,7 +61,7 @@ $pageTitle = 'AI Chiến lược - Admin';
 include '../includes/header.php';
 ?>
 
-<div class="container" style="max-width:1000px;">
+<div class="container" style="max-width:100%;">
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
         <div style="width:50px;height:50px;background:linear-gradient(135deg,#1f5fff,#7da7ff);border-radius:12px;display:flex;align-items:center;justify-content:center;">
             <i class="fas fa-brain" style="font-size:1.4rem;color:white;"></i>
@@ -116,8 +116,8 @@ include '../includes/header.php';
     </div>
 
     <!-- Chat area -->
-    <div class="card" style="padding:0;overflow:hidden;">
-        <div id="chatMessages" style="height:480px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;">
+<div class="card" style="padding:0;overflow:visible;--radius-lg:0;border-radius:0;max-width:100%;">
+         <div id="chatMessages" style="height:480px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;width:100%;box-sizing:border-box;">
             <!-- Welcome message -->
             <div class="ai-msg-wrapper">
                 <div class="ai-avatar"><i class="fas fa-brain"></i></div>
@@ -144,76 +144,71 @@ include '../includes/header.php';
 </div>
 
 <style>
-.ai-msg-wrapper { display:flex; gap:12px; align-items:flex-start; }
-.ai-msg-wrapper.user-msg { flex-direction:row-reverse; }
+/* SỬA LẠI ĐOẠN CSS NÀY TRONG FILE CỦA BẠN */
+/* TÌM VÀ THAY THẾ ĐOẠN CSS CỦA SUGGESTION-CHIP THÀNH ĐOẠN NÀY */
 
-.ai-avatar {
-    width: 36px; height: 36px; flex-shrink: 0;
-    background: linear-gradient(135deg, #1f5fff, #7da7ff);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 0.9rem;
-}
-.ai-msg-wrapper.user-msg .ai-avatar {
-    background: linear-gradient(135deg, #333, #555);
+.suggestion-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px; /* Khoảng cách giữa emoji và chữ bên trong nút */
+    padding: 8px 16px; /* Tăng nhẹ padding cho nút cân đối, dễ bấm */
+    border-radius: 20px; 
+    border: 1px solid var(--border-color);
+    background: rgba(255,255,255,0.04); 
+    color: var(--text-muted);
+    font-size: 0.85rem; 
+    cursor: pointer; 
+    transition: all 0.2s ease;
+    white-space: nowrap; /* Giữ chữ trên 1 hàng bên trong nút, không bị vỡ chữ */
 }
 
+.suggestion-chip:hover {
+    border-color: #1f5fff; 
+    background: rgba(31,95,255,0.1); 
+    color: #7da7ff;
+    transform: translateY(-1px); /* Hiệu ứng nổi nhẹ khi di chuột */
+}
+#chatMessages { 
+    width: 100%; 
+    box-sizing: border-box;
+}
+
+.ai-msg-wrapper { 
+    display: flex; 
+    gap: 12px; 
+    align-items: flex-start; 
+    width: 100%; 
+    box-sizing: border-box;
+}
+
+.ai-msg-wrapper.user-msg {
+    justify-content: flex-end;
+}
+
+/* Gộp chung và sửa lại class .ai-bubble */
 .ai-bubble {
-    max-width: 80%; padding: 14px 16px;
+    max-width: 85%; /* Giới hạn tối đa 85% chiều rộng khung chat để chừa khoảng trống đẹp mắt */
+    width: auto;     /* Tự động co giãn theo độ dài văn bản */
+    padding: 12px 16px;
     background: rgba(31,95,255,0.08);
     border: 1px solid rgba(31,95,255,0.2);
     border-radius: 0 14px 14px 14px;
-    font-size: 0.9rem; line-height: 1.6;
+    font-size: 0.9rem; 
+    line-height: 1.6;
     color: var(--text-main);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
 }
+
+/* Bong bóng chat của User (đẩy sát lề phải) */
 .ai-msg-wrapper.user-msg .ai-bubble {
     background: rgba(255,255,255,0.05);
     border-color: rgba(255,255,255,0.1);
     border-radius: 14px 0 14px 14px;
     color: var(--text-muted);
-}
-
-.ai-bubble p { margin: 0; }
-.ai-bubble p + p { margin-top: 8px; }
-.ai-bubble strong { color: var(--text-main); font-weight: 700; }
-.ai-bubble ul, .ai-bubble ol { margin: 8px 0; padding-left: 20px; }
-.ai-bubble li { margin: 4px 0; }
-.ai-bubble h3, .ai-bubble h4 { color: #7da7ff; margin: 12px 0 6px; }
-
-.typing-dots { display: inline-flex; gap: 4px; align-items: center; padding: 4px 0; }
-.typing-dots span {
-    width: 7px; height: 7px; background: #1f5fff;
-    border-radius: 50%; display: inline-block;
-    animation: typingBounce 1.2s infinite;
-}
-.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes typingBounce {
-    0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
-    40% { transform: scale(1); opacity: 1; }
-}
-
-.suggestion-chip {
-    padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-color);
-    background: rgba(255,255,255,0.04); color: var(--text-muted);
-    font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
-}
-.suggestion-chip:hover {
-    border-color: #1f5fff; background: rgba(31,95,255,0.1); color: #7da7ff;
-}
-
-/* Light theme */
-html.light-theme .ai-bubble {
-    background: rgba(31,95,255,0.06);
-    border-color: rgba(31,95,255,0.15);
-}
-html.light-theme .ai-msg-wrapper.user-msg .ai-bubble {
-    background: #f5f5f5; border-color: #e0e0e0;
-}
-html.light-theme .suggestion-chip {
-    background: white; border-color: #ccc; color: #555;
-}
-html.light-theme .suggestion-chip:hover {
-    border-color: #1f5fff; color: #1f5fff;
+    max-width: 75%;
+    margin-left: auto; /* Tự động đẩy về bên phải */
 }
 </style>
 
@@ -244,19 +239,10 @@ function addMessage(role, content) {
     bubble.className = 'ai-bubble';
 
     if (role === 'assistant') {
-        // Convert markdown-like to HTML
-        bubble.innerHTML = content
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/^### (.+)$/gm, '<h4>$1</h4>')
-            .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-            .replace(/^- (.+)$/gm, '<li>$1</li>')
-            .replace(/(<li>.*<\/li>)+/gs, '<ul>$&</ul>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/^([^<].+)$/gm, function(m) {
-                if (!m.startsWith('<')) return '<p>' + m + '</p>';
-                return m;
-            });
+        let html = content.replace(/\n/g, '<br>');
+        html = html.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
+        html = html.replace(/<img[^>]*>/gi, '');
+        bubble.innerHTML = html;
     } else {
         bubble.textContent = content;
     }

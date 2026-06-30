@@ -413,6 +413,51 @@ html.light-theme .theme-toggle {
     background: rgba(37, 99, 235, 0.08);
 }
 
+.lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.04);
+    gap: 2px;
+    height: 32px;
+}
+
+.lang-toggle-btn {
+    min-width: 34px;
+    height: 26px;
+    padding: 0 8px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lang-toggle-btn:hover:not(.is-active) {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.lang-toggle-btn.is-active {
+    background: var(--primary-blue);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(31, 95, 255, 0.35);
+}
+
+html.light-theme .lang-toggle {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+html.light-theme .lang-toggle-btn:hover:not(.is-active) {
+    background: rgba(15, 23, 42, 0.06);
+}
+
 /* User Account Dropdown Menu */
 .user-dropdown {
     position: relative;
@@ -2234,15 +2279,6 @@ html.light-theme .data-table th,
 html.light-theme .stat-value,
 html.light-theme .alert {
     color: var(--text-main) !important;
-}
-
-html.light-theme .lang-switcher .btn-header {
-    color: var(--text-main) !important;
-}
-
-html.light-theme .lang-switcher .btn-header.active-lang {
-    background: var(--primary-blue);
-    color: #ffffff !important;
 }
 
 html.light-theme .qr-section-title,

@@ -256,6 +256,42 @@ $GLOBALS['_translations'] = [
         'err_generic' => 'Có lỗi xảy ra, vui lòng thử lại',
         'filter_on_sale' => 'Đang giảm giá',
         'type_all' => 'Tất cả',
+        'returns' => 'Đổi trả',
+        'users' => 'Users',
+        'customer' => 'Khách hàng',
+        'customer_short' => 'Khách',
+        'date' => 'Ngày',
+        'actions' => 'Thao tác',
+        'reason' => 'Lý do',
+        'request_date' => 'Ngày yêu cầu',
+        'admin_orders_title' => 'QUẢN LÝ ĐƠN HÀNG',
+        'admin_orders_page' => 'Quản lý đơn hàng - Gundam Store',
+        'no_orders_admin' => 'Không có đơn hàng',
+        'admin_returns_title' => 'QUẢN LÝ ĐỔI TRẢ',
+        'admin_returns_page' => 'Quản lý đổi trả - Gundam Store',
+        'no_returns' => 'Không có yêu cầu đổi trả',
+        'return_pending' => 'Chờ xử lý',
+        'return_approved' => 'Chấp nhận',
+        'return_rejected' => 'Từ chối',
+        'process' => 'Xử lý',
+        'no_reply' => 'Không có phản hồi',
+        'revenue' => 'Doanh thu',
+        'recent_orders' => 'Đơn hàng gần đây',
+        'view_all' => 'Xem tất cả',
+        'no_recent_orders' => 'Chưa có đơn hàng',
+        'order_ratio' => 'Tỉ lệ đơn hàng',
+        'chart_sold' => 'Đã bán (Đã giao)',
+        'chart_unsold' => 'Chưa bán (Chờ/Hủy/Khác)',
+        'chart_no_data' => 'Không có dữ liệu đơn hàng',
+        'role_order_manager' => 'QL Đơn hàng',
+        'role_return_manager' => 'QL Đổi trả',
+        'role_staff' => 'Nhân viên',
+        'role_admin' => 'Admin',
+        'export_data' => 'Xuất dữ liệu',
+        'export_orders' => 'Xuất Đơn hàng',
+        'export_revenue' => 'Xuất Doanh thu',
+        'export_users' => 'Xuất Users',
+        'load_notifications_error' => 'Không thể tải thông báo',
     ],
     'en' => [
         'home' => 'Home',
@@ -509,34 +545,55 @@ $GLOBALS['_translations'] = [
         'err_generic' => 'An error occurred, please try again',
         'filter_on_sale' => 'On sale',
         'type_all' => 'All',
+        'returns' => 'Returns',
+        'users' => 'Users',
+        'customer' => 'Customer',
+        'customer_short' => 'Customer',
+        'date' => 'Date',
+        'actions' => 'Actions',
+        'reason' => 'Reason',
+        'request_date' => 'Request date',
+        'admin_orders_title' => 'ORDER MANAGEMENT',
+        'admin_orders_page' => 'Order Management - Gundam Store',
+        'no_orders_admin' => 'No orders',
+        'admin_returns_title' => 'RETURN MANAGEMENT',
+        'admin_returns_page' => 'Return Management - Gundam Store',
+        'no_returns' => 'No return requests',
+        'return_pending' => 'Pending',
+        'return_approved' => 'Approved',
+        'return_rejected' => 'Rejected',
+        'process' => 'Process',
+        'no_reply' => 'No reply',
+        'revenue' => 'Revenue',
+        'recent_orders' => 'Recent orders',
+        'view_all' => 'View all',
+        'no_recent_orders' => 'No orders yet',
+        'order_ratio' => 'Order ratio',
+        'chart_sold' => 'Sold (Delivered)',
+        'chart_unsold' => 'Unsold (Pending/Cancelled/Other)',
+        'chart_no_data' => 'No order data',
+        'role_order_manager' => 'Order Manager',
+        'role_return_manager' => 'Return Manager',
+        'role_staff' => 'Staff',
+        'role_admin' => 'Admin',
+        'export_data' => 'Export data',
+        'export_orders' => 'Export Orders',
+        'export_revenue' => 'Export Revenue',
+        'export_users' => 'Export Users',
+        'load_notifications_error' => 'Could not load notifications',
     ],
 ];
 
-function langUrl($lang) {
-    $params = $_GET;
-    $params['lang'] = $lang;
-    $path = strtok($_SERVER['REQUEST_URI'] ?? '', '?') ?: '/';
-    return $path . '?' . http_build_query($params);
-}
-
 function initLang() {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+    $lang = 'vi';
+    if (!empty($_COOKIE['gs_lang']) && in_array($_COOKIE['gs_lang'], ['vi', 'en'], true)) {
+        $lang = $_COOKIE['gs_lang'];
     }
-    if (isset($_GET['lang']) && in_array($_GET['lang'], ['vi', 'en'], true)) {
-        $_SESSION['lang'] = $_GET['lang'];
-        $cookieOpts = ['expires' => time() + 86400 * 365, 'path' => '/', 'samesite' => 'Lax'];
-        setcookie('gs_lang', $_GET['lang'], $cookieOpts);
-    } elseif (empty($_SESSION['lang']) && !empty($_COOKIE['gs_lang']) && in_array($_COOKIE['gs_lang'], ['vi', 'en'], true)) {
-        $_SESSION['lang'] = $_COOKIE['gs_lang'];
-    }
-    if (empty($_SESSION['lang'])) {
-        $_SESSION['lang'] = 'vi';
-    }
+    $GLOBALS['_current_lang'] = $lang;
 }
 
 function currentLang() {
-    return $_SESSION['lang'] ?? 'vi';
+    return $GLOBALS['_current_lang'] ?? 'vi';
 }
 
 function __($key, ...$args) {

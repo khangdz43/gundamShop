@@ -314,12 +314,32 @@ function initThemeToggle() {
     }
 }
 
+function initLangSwitcher() {
+    const group = document.querySelector('.lang-toggle');
+    if (!group) return;
+
+    const current = localStorage.getItem('gs_lang') || 'vi';
+
+    group.querySelectorAll('.lang-toggle-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const lang = btn.dataset.lang;
+            if (!lang || lang === current) return;
+
+            localStorage.setItem('gs_lang', lang);
+            document.cookie = 'gs_lang=' + lang + ';path=/;max-age=31536000;SameSite=Lax';
+            location.reload();
+        });
+    });
+}
+
 function initNotifications() {
     const bell = document.getElementById('notificationBell');
     const badge = document.getElementById('notificationBadge');
     const dropdown = document.getElementById('notificationDropdown');
     const list = document.getElementById('notificationList');
     const base = document.body.dataset.basePath || '';
+    const noNotificationsText = document.body.dataset.i18nNoNotifications || 'No new notifications';
+    const loadErrorText = document.body.dataset.i18nLoadError || 'Could not load notifications';
     
     if (!bell || !dropdown || !list || !badge) return;
 
@@ -358,7 +378,7 @@ function initNotifications() {
             }
 
             if (!data.notifications || data.notifications.length === 0) {
-                list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:0.9rem;">Không có thông báo mới</div>';
+                list.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:0.9rem;">${noNotificationsText}</div>`;
                 return;
             }
 
@@ -414,7 +434,7 @@ function initNotifications() {
             });
 
         } catch (error) {
-            list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:0.9rem;">Không thể tải thông báo</div>';
+            list.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:0.9rem;">${loadErrorText}</div>`;
         }
     }
 
@@ -450,5 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initChatbot();
     initLiveProductSearch();
     initThemeToggle();
+    initLangSwitcher();
     initNotifications();
 });

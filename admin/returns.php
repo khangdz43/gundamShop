@@ -12,11 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_id'])) {
     $newStatus = $_POST['status']; // 'approved' or 'rejected'
     $adminComment = trim($_POST['admin_comment'] ?? '');
 
-    if (in_array($newStatus, ['approved', 'rejected'])) {
+    if (in_array($newStatus, ['approved', 'rejected'], true)) {
         $conn->begin_transaction();
         try {
-            // Get return details and order items
-            $stmt = $conn->prepare("SELECT r.*, o.id as order_db_id, o.user_id as order_user_id FROM order_returns r JOIN orders o ON r.order_id = o.id WHERE r.id = ?");
+            // ĐÃ SỬA: Lấy thông tin đơn hàng thông qua r.order_id thay vì r.user_id
+            $stmt = $conn->prepare("SELECT r.*, o.id as order_db_id, o.user_id as order_user_id, o.order_code FROM order_returns r JOIN orders o ON r.order_id = o.id WHERE r.id = ?");
             $stmt->bind_param("i", $returnId);
             $stmt->execute();
             $returnReq = $stmt->get_result()->fetch_assoc();
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_id'])) {
             $stmt->execute();
             $stmt->close();
 
-            // If approved, refund stock and update order status (e.g. cancelled/returned)
+            // If approved, refund stock and update order status
             if ($newStatus === 'approved') {
                 // Get order items
                 $stmt = $conn->prepare("SELECT * FROM order_items WHERE order_id = ?");
@@ -48,16 +48,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_id'])) {
                     $stmt->close();
                 }
 
-                // Update order status to 'cancelled' or custom label
+                // Update order status to 'cancelled'
                 $stmt = $conn->prepare("UPDATE orders SET status = 'cancelled' WHERE id = ?");
                 $stmt->bind_param("i", $returnReq['order_db_id']);
                 $stmt->execute();
                 $stmt->close();
             }
 
-            // Send notification to the user
+            // Send notification to the user (Đã sửa: Đổi sang thông báo hiển thị mã đơn hàng cụ thể)
             $notifTitle = "Cập nhật yêu cầu đổi trả";
-            $notifMsg = "Yêu cầu đổi trả cho đơn hàng #" . $returnReq['id'] . " đã được " . ($newStatus === 'approved' ? 'chấp nhận' : 'từ chối') . ". Phản hồi: " . $adminComment;
+            $notifMsg = "Yêu cầu đổi trả cho đơn hàng #" . $returnReq['order_code'] . " đã được " . ($newStatus === 'approved' ? 'chấp nhận' : 'từ chối') . ". Phản hồi: " . $adminComment;
             
             $stmt = $conn->prepare("INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)");
             $stmt->bind_param("iss", $returnReq['order_user_id'], $notifTitle, $notifMsg);
@@ -74,11 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_id'])) {
     }
 }
 
-// Fetch returns list
+// Fetch returns list (ĐÃ SỬA: JOIN thông qua bảng orders để lấy thông tin u.username của khách hàng)
 $sql = "SELECT r.*, o.order_code, o.total, u.username 
         FROM order_returns r 
         JOIN orders o ON r.order_id = o.id 
-        JOIN users u ON r.user_id = u.id 
+        JOIN users u ON o.user_id = u.id 
         ORDER BY r.created_at DESC";
 $result = $conn->query($sql);
 $returns = $result->fetch_all(MYSQLI_ASSOC);
@@ -115,7 +115,7 @@ include '../includes/header.php';
                 <?php else: ?>
                     <?php foreach ($returns as $r): ?>
                     <tr>
-                        <td>#<?php echo $r['id']; ?></td>
+                        <td>#<?php echo (int)$r['id']; ?></td>
                         <td><strong><?php echo htmlspecialchars($r['order_code']); ?></strong></td>
                         <td>@<?php echo htmlspecialchars($r['username']); ?></td>
                         <td><?php echo htmlspecialchars($r['reason']); ?></td>
@@ -193,7 +193,6 @@ function closeProcessModal() {
     document.getElementById('processModal').style.display = 'none';
 }
 
-// Close modal when clicking outside
 document.getElementById('processModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeProcessModal();

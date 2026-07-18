@@ -16,7 +16,7 @@ if (!$order) redirect('orders.php');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'])) {
     $newStatus = $_POST['status'];
     $oldStatus = $order['status'];
-    if (in_array($newStatus, ['pending','confirmed','shipping','delivered','cancelled'], true) && $newStatus !== $oldStatus) {
+    if (in_array($newStatus, ['pending','processing','shipped','completed','cancelled'], true) && $newStatus !== $oldStatus) {
         $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $newStatus, $orderId);
         $stmt->execute();
@@ -78,7 +78,7 @@ include '../includes/header.php';
                 <div class="form-group">
                     <label>Cập nhật trạng thái</label>
                     <select name="status" class="form-control">
-                        <?php foreach (['pending','confirmed','shipping','delivered','cancelled'] as $s): ?>
+                        <?php foreach (['pending','processing','shipped','completed','cancelled'] as $s): ?>
                         <option value="<?php echo $s; ?>" <?php echo $order['status'] === $s ? 'selected' : ''; ?>><?php echo getOrderStatusLabel($s); ?></option>
                         <?php endforeach; ?>
                     </select>

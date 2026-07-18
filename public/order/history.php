@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../../includes/auth.php';
 requireLogin();
 
 if (isAdmin()) redirect('admin/orders.php');
@@ -13,7 +13,7 @@ $sql = "SELECT * FROM orders WHERE user_id = ?";
 $params = [$userId];
 $types = 'i';
 
-if ($statusFilter && in_array($statusFilter, ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'], true)) {
+if ($statusFilter && in_array($statusFilter, ['pending', 'processing', 'shipped', 'completed', 'cancelled'], true)) {
     $sql .= " AND status = ?";
     $params[] = $statusFilter;
     $types .= 's';
@@ -78,7 +78,7 @@ $monthLabels = [
 ];
 
 $pageTitle = __('my_orders') . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -133,7 +133,7 @@ include 'includes/header.php';
                 <label style="font-size:0.85rem;color:var(--text-muted);"><?php echo __('status'); ?></label>
                 <select name="status" class="form-control">
                     <option value=""><?php echo __('all'); ?></option>
-                    <?php foreach (['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'] as $s): ?>
+                    <?php foreach (['pending', 'processing', 'shipped', 'completed', 'cancelled'] as $s): ?>
                     <option value="<?php echo $s; ?>" <?php echo $statusFilter === $s ? 'selected' : ''; ?>><?php echo getOrderStatusLabel($s); ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -154,7 +154,7 @@ include 'includes/header.php';
         $allUrl = 'orders.php' . ($baseQuery ? '?' . $baseQuery : '');
         ?>
         <a href="<?php echo $allUrl; ?>" class="btn <?php echo !$statusFilter ? 'btn-blue' : 'btn-gray'; ?> btn-sm"><?php echo __('all'); ?></a>
-        <?php foreach (['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'] as $s):
+        <?php foreach (['pending', 'processing', 'shipped', 'completed', 'cancelled'] as $s):
             $q = array_merge($filterParams, ['status' => $s]);
             $url = 'orders.php?' . http_build_query($q);
         ?>
@@ -257,4 +257,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php endif; ?>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../../includes/footer.php'; ?>

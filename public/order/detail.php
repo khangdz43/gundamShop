@@ -1,25 +1,32 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../../includes/auth.php';
 requireLogin();
 
 $orderId = (int)($_GET['id'] ?? 0);
 $userId = getUserId();
+
+// 1. Lấy thông tin đơn hàng (Đảm bảo đúng đơn hàng của User đang đăng nhập)
 $stmt = $conn->prepare("SELECT * FROM orders WHERE id = ? AND user_id = ?");
 $stmt->bind_param("ii", $orderId, $userId);
 $stmt->execute();
 $order = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$order) redirect('orders.php');
+// Nếu không tìm thấy đơn hàng hoặc đơn hàng không thuộc về user này -> Đá văng ra ngoài ngay lập tức
+if (!$order) {
+    redirect('orders.php');
+    exit; // Luôn luôn thêm exit sau khi redirect để chặn thực thi code bên dưới
+}
 
+// 2. Lấy danh sách sản phẩm trong đơn hàng
 $stmt = $conn->prepare("SELECT * FROM order_items WHERE order_id = ?");
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Check for return request
-$stmt = $conn->prepare("SELECT * FROM order_returns WHERE order_id = ?");
+// 3. Check trạng thái đổi trả đơn hàng (Đã sửa đổi: Không cần check user_id ở đây nữa vì order_id đã được bảo vệ ở bước 1)
+$stmt = $conn->prepare("SELECT * FROM order_returns WHERE order_id = ? LIMIT 1");
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $returnRequest = $stmt->get_result()->fetch_assoc();
@@ -27,7 +34,7 @@ $stmt->close();
 
 $flash = getFlash('order');
 $pageTitle = __('order_detail_title') . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="container">
@@ -45,16 +52,16 @@ include 'includes/header.php';
             <h2 style="margin-top:0"><?php echo __('order_products'); ?></h2>
             <?php foreach ($items as $item): ?>
             <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border-color)">
-                <img src="assets/images/<?php echo htmlspecialchars($item['product_image']); ?>" style="width:80px;height:80px;object-fit:contain;background:#1a1a1a;border-radius:8px;padding:6px">
+                <img src="<?php echo getAppBasePath(); ?>assets/images/<?php echo htmlspecialchars($item['product_image']); ?>" style="width:80px;height:80px;object-fit:contain;background:#1a1a1a;border-radius:8px;padding:6px">
                 <div style="flex:1">
                     <div style="font-weight:600"><?php echo htmlspecialchars($item['product_name']); ?></div>
-                    <div style="color:var(--text-gray);font-size:0.9rem"><?php echo formatPrice($item['price']); ?> x <?php echo $item['quantity']; ?></div>
+                    <div style="color:var(--text-gray);font-size:0.9rem"><?php echo formatPrice($item['price']); ?> x <?php echo (int)$item['quantity']; ?></div>
                 </div>
                 <div style="font-weight:bold"><?php echo formatPrice($item['subtotal']); ?></div>
             </div>
             <?php endforeach; ?>
             
-            <?php if ($order['payment_method'] === 'bank_transfer' && in_array($order['status'], ['pending', 'confirmed'])): ?>
+            <?php if ($order['payment_method'] === 'bank_transfer' && in_array($order['status'], ['pending', 'processing'], true)): ?>
             <!-- VietQR block inside customer order detail -->
             <div style="margin-top: 30px; padding: 20px; background: rgba(31, 95, 255, 0.08); border: 2px dashed var(--primary-blue); border-radius: 12px; text-align: center;">
                 <h3 style="margin-top: 0; color: var(--text-main);"><i class="fas fa-qrcode"></i> <?php echo __('qr_payment'); ?></h3>
@@ -104,12 +111,12 @@ include 'includes/header.php';
                         <p style="margin: 8px 0; font-size:0.9rem; color:#ffc107;"><strong><?php echo __('return_admin_reply'); ?>:</strong> <?php echo htmlspecialchars($returnRequest['admin_comment']); ?></p>
                     <?php endif; ?>
                 </div>
-            <?php elseif ($order['status'] === 'delivered'): ?>
-                <a href="return_request.php?order_id=<?php echo $order['id']; ?>" class="btn btn-blue" style="width:100%; margin-top:20px; background:#e10600; justify-content: center;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></a>
+            <?php elseif ($order['status'] === 'completed'): ?>
+                <a href="return_request.php?order_id=<?php echo (int)$order['id']; ?>" class="btn btn-blue" style="width:100%; margin-top:20px; background:#e10600; justify-content: center;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></a>
             <?php endif; ?>
             
-            <?php if (in_array($order['status'], ['pending', 'confirmed'], true)): ?>
-            <button type="button" id="btnCancelOrder" onclick="confirmCancelOrder(<?php echo $order['id']; ?>, '<?php echo htmlspecialchars($order['order_code']); ?>')"
+            <?php if (in_array($order['status'], ['pending', 'processing'], true)): ?>
+            <button type="button" id="btnCancelOrder" onclick="confirmCancelOrder(<?php echo (int)$order['id']; ?>, '<?php echo addslashes(htmlspecialchars($order['order_code'])); ?>')"
                 class="btn" style="width:100%;margin-top:12px;background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;border:none;cursor:pointer;justify-content:center;display:flex;align-items:center;gap:8px;font-weight:600;">
                 <i class="fas fa-times-circle"></i> <?php echo __('cancel_order'); ?>
             </button>
@@ -182,7 +189,6 @@ function doCancel() {
     .then(function(data) {
         closeCancelModal();
         if (data.success) {
-            // Hiển thị thông báo thành công rồi reload
             var flash = document.createElement('div');
             flash.className = 'alert alert-success';
             flash.style.cssText = 'position:fixed;top:90px;right:20px;z-index:9998;padding:15px 20px;border-radius:10px;background:rgba(40,167,69,0.9);color:white;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
@@ -203,10 +209,9 @@ function doCancel() {
     });
 }
 
-// Đóng modal khi click bên ngoài
 document.getElementById('cancelModal').addEventListener('click', function(e) {
     if (e.target === this) closeCancelModal();
 });
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../../includes/footer.php'; ?>

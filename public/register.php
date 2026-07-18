@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 if (isLoggedIn()) {
     redirect('index.php');
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         })();
     </script>
-    <link rel="stylesheet" href="assets/app.css">
+    <link rel="stylesheet" href="<?php echo getAppBasePath(); ?>assets/app.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="auth-link">
-            <p>Đã có tài khoản? <a href="login.php">Đăng nhập</a></p>
+            <p>Đã có tài khoản? <a href="login">Đăng nhập</a></p>
             <p style="margin-top:10px"><a href="index.php"><i class="fas fa-arrow-left"></i> Về trang chủ</a></p>
         </div>
     </div>

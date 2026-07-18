@@ -1,17 +1,17 @@
 <?php
 session_start();
-include "config/db.php";
-require_once "includes/auth.php";
+include __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 $pageTitle = 'Gundam Store HUMG - Mô Hình Chính Hãng';
-include "includes/header.php";
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <!-- HERO BANNER -->
 <section class="hero-banner">
     <div class="hero-slider">
         <div class="hero-slide active">
-            <img src="assets/images/Banner.jpg" alt="Gundam Banner">
+            <img src="<?php echo getAppBasePath(); ?>assets/images/Banner.jpg" alt="Gundam Banner">
             <div class="hero-content">
                 <h1 class="hero-title"><?php echo __('hero_title_1'); ?></h1>
                 <p class="hero-subtitle"><?php echo __('hero_subtitle_1'); ?></p>
@@ -19,7 +19,7 @@ include "includes/header.php";
             </div>
         </div>
         <div class="hero-slide">
-            <img src="assets/images/Banner2.jpg" alt="Gundam Collection">
+            <img src="<?php echo getAppBasePath(); ?>assets/images/Banner2.jpg" alt="Gundam Collection">
             <div class="hero-content">
                 <h1 class="hero-title"><?php echo __('hero_title_2'); ?></h1>
                 <p class="hero-subtitle"><?php echo __('hero_subtitle_2'); ?></p>
@@ -78,11 +78,11 @@ include "includes/header.php";
             
             // Lấy số lượng sản phẩm từ DB
             $counts = [];
-            $sql_categories = "SELECT type, COUNT(*) as count FROM products WHERE status = 'active' GROUP BY type";
+            $sql_categories = "SELECT grade, COUNT(*) as count FROM products WHERE status = 'active' GROUP BY grade";
             $result_categories = mysqli_query($conn, $sql_categories);
             if ($result_categories) {
                 while($cat = mysqli_fetch_assoc($result_categories)) {
-                    $counts[$cat['type']] = $cat['count'];
+                    $counts[$cat['grade']] = $cat['count'];
                 }
             }
             
@@ -91,7 +91,7 @@ include "includes/header.php";
                 $image = file_exists($category['image']) ? $category['image'] : "assets/images/LOGO.jpg";
             ?>
             <div class="category-card" onclick="window.location.href='products.php?type=<?= $type ?>'">
-                <img src="<?= $image ?>" alt="<?= $type ?>" class="category-img" onerror="this.src='assets/images/LOGO.jpg'">
+                <img src="<?= $image ?>" alt="<?= $type ?>" class="category-img" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
                 <div class="category-info">
                     <h3 class="category-name"><?= $type ?> – <?= $category['name'] ?></h3>
                     <p class="category-desc"><?= $category['desc'] ?></p>
@@ -130,7 +130,7 @@ include "includes/header.php";
                     </a>
                 </div>
                 <div class="product-info">
-                    <span class="product-type"><?= htmlspecialchars($row['type']) ?></span>
+                    <span class="product-type"><?= htmlspecialchars($row['grade']) ?></span>
                     <h3 class="product-name"><a href="products_detail.php?id=<?= $row['id'] ?>"><?= htmlspecialchars($row['name']) ?></a></h3>
                     <div class="product-rating">
                         <i class="fas fa-star"></i>
@@ -192,7 +192,7 @@ include "includes/header.php";
                     </a>
                 </div>
                 <div class="product-info">
-                    <span class="product-type"><?= htmlspecialchars($row['type']) ?></span>
+                    <span class="product-type"><?= htmlspecialchars($row['grade']) ?></span>
                     <h3 class="product-name"><a href="products_detail.php?id=<?= $row['id'] ?>"><?= htmlspecialchars($row['name']) ?></a></h3>
                     <div class="product-rating">
                         <i class="fas fa-star"></i>
@@ -289,5 +289,5 @@ include "includes/header.php";
 </script>
 
 <?php
-include "includes/footer.php";
+include __DIR__ . '/../includes/footer.php';
 ?>

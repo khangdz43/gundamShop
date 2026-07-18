@@ -12,7 +12,7 @@ if (!function_exists('adminNavActive')) {
 $posLabels = [
     'admin'          => __('role_admin'),
     'order_manager'  => __('role_order_manager'),
-    'return_manager' => __('role_return_manager'),
+    'product_manager'=> __('role_product_manager'),
     'staff'          => __('role_staff'),
 ];
 $pos = $_SESSION['position'] ?? null;
@@ -29,7 +29,7 @@ $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __
             </a>
             <ul class="nav-menu admin-site-menu" id="navMenu">
                 <li><a href="<?php echo $adminBasePath; ?>index.php"><i class="fas fa-home"></i> <?php echo __('home'); ?></a></li>
-                <li><a href="<?php echo $adminBasePath; ?>products.php"><i class="fas fa-box"></i> <?php echo __('products'); ?></a></li>
+                <li><a href="<?php echo $adminBasePath; ?>products"><i class="fas fa-box"></i> <?php echo __('products'); ?></a></li>
             </ul>
         </nav>
 
@@ -71,7 +71,7 @@ $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __
             </a>
             <?php endif; ?>
 
-            <?php if (hasPermission('notifications')): ?>
+            <?php if (isAdmin()): ?>
             <a href="<?php echo $adminBasePath; ?>admin/send_notification.php" class="btn-header<?php echo in_array($currentAdminPage, ['send_notification.php']) ? ' active' : ''; ?>">
                 <i class="fas fa-paper-plane"></i> <?php echo __('send_notif'); ?>
             </a>

@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 requireLogin();
 
 if (isAdmin()) redirect('admin/index.php');
@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apply_coupon'])) {
 }
 $flash = getFlash('cart');
 $pageTitle = __('cart_title') . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container">
@@ -145,7 +145,7 @@ include 'includes/header.php';
                         <label class="cart-item-check">
                             <input type="checkbox" name="selected[]" value="<?php echo $item['id']; ?>" class="cart-item-checkbox" <?php echo $isSelected ? 'checked' : ''; ?>>
                         </label>
-                        <img src="assets/images/<?php echo htmlspecialchars($item['image'] ?: 'LOGO.jpg'); ?>" alt="" class="cart-item-img" onerror="this.src='assets/images/LOGO.jpg'">
+                        <img src="<?php echo getAppBasePath(); ?>assets/images/<?php echo htmlspecialchars($item['image'] ?: 'LOGO.jpg'); ?>" alt="" class="cart-item-img" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
                         <div class="cart-item-details">
                             <h3><?php echo htmlspecialchars($item['name']); ?></h3>
                             <div class="cart-item-price"><?php echo formatPrice($item['price']); ?></div>
@@ -298,4 +298,4 @@ include 'includes/header.php';
 </script>
 <?php endif; ?>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

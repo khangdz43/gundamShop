@@ -1,1 +1,56 @@
 AI,mô tả sản phẩm , phân khúc, danh mục, notify bên giao diện người dùng, nhiều chỗ trong giao diện admin  chưa chuyển sang tiếng anh
+
+
+
+cái phân quyền chưa được, 
+cái hủy đơn chưa được
+áp mã giảm giá chưa được hình như được ròi
+
+
+sửa 3 file: order_detail.php, return_request.php, admin/returns.php  xóa cột user_id bảng returns
+
+
+Chỗ qly đơn hàng ý
+nhue kiểu qly đơn hàng thì phải làm ntn để quản lý logic hơn
+ví dụ mà trang web bán 1 ngày, 1 tuần... đc nghìn đơn thì qly như nào
+nó phải phân chia rõ ra
+thêm thanh tìm kiếm nữa
+chi tiết sp thì làm chuẩn chủ luôn kiểu v
+buổi sau cô bảo hỏi về mã nguồn và hoàn thiện chức năng
+
+
+dasboard chi tiết tìm kiếm lọc theo ngày theo tháng theo năm 
+mã giảm giá đoạn thời gian bắt đầu và kết thúc cho select option cho dễ đi
+
+
+
+
+lần sau kiểm tra phần chương 3 4 báo cáo
+cuối tháng 7
+chỉnh chu hơn về sản phâm
+
+
+
+báo cáo 
+10 trang
+chương 3 Phương pháp, quy trình thực hiện giải quyết bài toán
+Yêu cầu chức năng (Functional Requirements) và phi chức năng.
+
+Sơ đồ Use Case (Tổng thể, phân hệ Admin, phân hệ Khách hàng).
+
+Sơ đồ hoạt động (Activity Diagram) cho các luồng nghiệp vụ phức tạp: Đặt hàng, xử lý bộ lọc nâng cao (như bộ lọc ngày/tháng/năm bạn vừa làm), quản lý trạng thái đơn hàng.
+
+Thiết kế cơ sở dữ liệu: Sơ đồ ERD (Entity-Relationship Diagram) và đặc tả chi tiết các bảng (Database Schema như bảng orders, users, products...).
+CHƯƠNG 4 Kết quả thực nghiệm 
+Giao diện thực tế của ứng dụng (Chụp màn hình các trang chính: Trang chủ, danh sách sản phẩm, quản lý đơn hàng của Admin kèm giải thích).
+
+Kèm theo một số đoạn mã nguồn cốt lõi (Core Code Snippets) thể hiện tư duy lập trình tối ưu (ví dụ: xử lý Prepared Statement bảo mật chống SQL Injection, phân trang LIMIT / OFFSET tối ưu tốc độ tải dữ liệu).
+kết luận
+Những kết quả đã đạt được so với mục tiêu ban đầu.
+
+Hạn chế của hệ thống và hướng tối ưu tối sau này (Ví dụ: tối ưu index database, tích hợp cổng thanh toán online).
+ danh mục tham khảo
+ 
+  phụ lục
+
+

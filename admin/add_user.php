@@ -2,6 +2,8 @@
 require_once '../includes/auth.php';
 requireAdmin();
 
+$basePath = '../';
+
 $message = '';
 $success = false;
 
@@ -12,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name'] ?? '');
     $phone     = trim($_POST['phone'] ?? '');
     $role      = in_array($_POST['role'] ?? '', ['user','employee','admin']) ? $_POST['role'] : 'user';
-    $position  = in_array($_POST['position'] ?? '', ['admin','order_manager','return_manager','staff']) ? $_POST['position'] : null;
+    $position  = in_array($_POST['position'] ?? '', ['admin','order_manager','product_manager','staff']) ? $_POST['position'] : null;
 
     // Nếu role là user thì xóa position
     if ($role === 'user') $position = null;
@@ -98,7 +100,7 @@ include '../includes/header.php';
                     <label>Chức vụ nhân viên</label>
                     <select name="position" class="form-control">
                         <option value="order_manager">Quản lý Đơn hàng</option>
-                        <option value="return_manager">Quản lý Đổi trả</option>
+                        <option value="product_manager">Quản lý Sản phẩm</option>
                         <option value="staff">Nhân viên</option>
                     </select>
                 </div>
@@ -121,10 +123,10 @@ include '../includes/header.php';
 <script>
 var permMap = {
     'user':           { label: 'Khách hàng - Không có quyền admin', perms: [] },
-    'employee-order_manager':  { label: 'Quản lý Đơn hàng', perms: ['Dashboard', 'Xem & cập nhật Đơn hàng'] },
-    'employee-return_manager': { label: 'Quản lý Đổi trả',  perms: ['Dashboard', 'Xem & xử lý Yêu cầu đổi trả'] },
-    'employee-staff':          { label: 'Nhân viên',         perms: ['Dashboard', 'Xem Đơn hàng', 'Xem Đổi trả'] },
-    'admin':          { label: 'Quản trị viên',  perms: ['Toàn quyền: Dashboard, Sản phẩm, Đơn hàng, Đổi trả, Users, Thông báo, AI'] },
+    'employee-order_manager':   { label: 'Quản lý Đơn hàng',   perms: ['Dashboard', 'Quản lý Đơn hàng'] },
+    'employee-product_manager': { label: 'Quản lý Sản phẩm', perms: ['Dashboard', 'Quản lý Sản phẩm'] },
+    'employee-staff':           { label: 'Nhân viên',         perms: ['Dashboard', 'Thông báo'] },
+    'admin':          { label: 'Quản trị viên',         perms: ['Toàn quyền: Dashboard, Sản phẩm, Đơn hàng, Users, Thông báo, AI'] },
 };
 
 function updatePositionVis() {

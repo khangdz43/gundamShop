@@ -16,7 +16,20 @@ function sanitize($conn, $value) {
 }
 
 function redirect($url) {
-    header("Location: $url");
+    if (empty($url)) {
+        $url = 'index.php';
+    }
+
+    if (preg_match('#^(https?:)?//#i', $url) || preg_match('#^[a-z][a-z0-9+.-]*:#i', $url)) {
+        header("Location: $url");
+        exit();
+    }
+
+    $baseUrl = function_exists('getAppBaseUrl') ? getAppBaseUrl() : '';
+    $normalizedPath = '/' . ltrim($url, '/');
+    $target = $baseUrl !== '' ? rtrim($baseUrl, '/') . $normalizedPath : $normalizedPath;
+
+    header("Location: $target");
     exit();
 }
 
@@ -52,70 +65,71 @@ function getProductById($conn, $id) {
 }
 
 function getOrderStatusLabel($status) {
+    // Mapping status DB mới: pending, processing, shipped, completed, cancelled
     $keys = [
-        'pending' => 'status_pending',
-        'confirmed' => 'status_confirmed',
-        'shipping' => 'status_shipping',
-        'delivered' => 'status_delivered',
-        'cancelled' => 'status_cancelled',
+        'pending'    => 'status_pending',
+        'processing' => 'status_processing',
+        'shipped'    => 'status_shipped',
+        'completed'  => 'status_completed',
+        'cancelled'  => 'status_cancelled',
     ];
     if (function_exists('__') && isset($keys[$status])) {
         return __($keys[$status]);
     }
     $labels = [
-        'pending' => 'Chờ xác nhận',
-        'confirmed' => 'Đã xác nhận',
-        'shipping' => 'Đang giao',
-        'delivered' => 'Đã giao',
-        'cancelled' => 'Đã hủy'
+        'pending'    => 'Chờ xác nhận',
+        'processing' => 'Đang xử lý',
+        'shipped'    => 'Đang giao hàng',
+        'completed'  => 'Hoàn thành',
+        'cancelled'  => 'Đã hủy',
     ];
     return $labels[$status] ?? $status;
 }
 
-function ensureCouponsTable($conn) {
-    static $checked = false;
-    if ($checked) return;
-    $checked = true;
-
-    $conn->query("CREATE TABLE IF NOT EXISTS `coupons` (
-        `id` int NOT NULL AUTO_INCREMENT,
-        `code` varchar(50) NOT NULL,
-        `description` varchar(255) DEFAULT NULL,
-        `discount_type` enum('percent','fixed') NOT NULL DEFAULT 'percent',
-        `discount_value` decimal(10,2) NOT NULL DEFAULT '0.00',
-        `min_order` decimal(12,2) NOT NULL DEFAULT '0.00',
-        `max_uses` int DEFAULT NULL,
-        `used_count` int NOT NULL DEFAULT '0',
-        `starts_at` datetime DEFAULT NULL,
-        `expires_at` datetime DEFAULT NULL,
-        `is_active` tinyint(1) NOT NULL DEFAULT '1',
-        `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`),
-        UNIQUE KEY `code` (`code`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-    $cols = ['coupon_code' => "VARCHAR(50) DEFAULT NULL", 'discount_amount' => "DECIMAL(12,2) DEFAULT 0"];
-    foreach ($cols as $col => $def) {
-        $r = $conn->query("SHOW COLUMNS FROM orders LIKE '$col'");
-        if ($r && $r->num_rows === 0) {
-            $conn->query("ALTER TABLE orders ADD COLUMN `$col` $def");
-        }
-        if ($r) $r->free();
-    }
-}
-
-function sendUserNotification($conn, $userId, $title, $message, $type = 'info') {
-    $stmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)");
-    if (!$stmt) {
-        $stmt = $conn->prepare("INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)");
+/**
+ * Gửi thông báo cho một user cụ thể.
+ * Schema mới: notifications (nội dung) + notification_users (trạng thái đọc).
+ * @param int|null $userId  null = broadcast tất cả user.
+ */
+function sendUserNotification($conn, $userId, $title, $message, $type = 'system') {
+    try {
+        // 1. Chèn nội dung thông báo vào bảng notifications
+        $stmt = $conn->prepare("INSERT INTO notifications (title, message, type) VALUES (?, ?, ?)");
         if (!$stmt) return false;
-        $stmt->bind_param('iss', $userId, $title, $message);
-    } else {
-        $stmt->bind_param('isss', $userId, $title, $message, $type);
+        $stmt->bind_param('sss', $title, $message, $type);
+        $stmt->execute();
+        $notifId = (int)$conn->insert_id;
+        $stmt->close();
+
+        if ($notifId <= 0) return false;
+
+        // 2a. Nếu có userId cụ thể -> chèn 1 dòng vào notification_users
+        if ($userId !== null) {
+            $uid = (int)$userId;
+            $stmt = $conn->prepare("INSERT IGNORE INTO notification_users (user_id, notification_id, is_read) VALUES (?, ?, 0)");
+            if ($stmt) {
+                $stmt->bind_param('ii', $uid, $notifId);
+                $stmt->execute();
+                $stmt->close();
+            }
+        } else {
+            // 2b. Broadcast: chèn cho tất cả user đang active
+            $users = $conn->query("SELECT id FROM users WHERE is_active = 1");
+            if ($users) {
+                $ins = $conn->prepare("INSERT IGNORE INTO notification_users (user_id, notification_id, is_read) VALUES (?, ?, 0)");
+                while ($u = $users->fetch_assoc()) {
+                    $uid = (int)$u['id'];
+                    $ins->bind_param('ii', $uid, $notifId);
+                    $ins->execute();
+                }
+                $ins->close();
+                $users->free();
+            }
+        }
+        return true;
+    } catch (Exception $e) {
+        return false;
     }
-    $ok = $stmt->execute();
-    $stmt->close();
-    return $ok;
 }
 
 function notifyOrderStatusChange($conn, $order, $oldStatus, $newStatus) {
@@ -123,25 +137,25 @@ function notifyOrderStatusChange($conn, $order, $oldStatus, $newStatus) {
 
     $userId = (int)$order['user_id'];
     $code = $order['order_code'];
+    $type = ($newStatus === 'cancelled') ? 'personal' : 'order_update';
 
-    if ($newStatus === 'cancelled') {
-        sendUserNotification(
-            $conn,
-            $userId,
-            __('notif_order_cancelled'),
-            sprintf(__('notif_order_cancelled_msg'), $code),
-            'warning'
-        );
-        return;
+    if (function_exists('__')) {
+        $titleKey = ($newStatus === 'cancelled') ? 'notif_order_cancelled' : 'notif_order_status';
+        $msgKey   = ($newStatus === 'cancelled') ? 'notif_order_cancelled_msg' : 'notif_order_status_msg';
+        $title   = __($titleKey);
+        $message = sprintf(__($msgKey), $code, getOrderStatusLabel($newStatus));
+    } else {
+        $label = getOrderStatusLabel($newStatus);
+        if ($newStatus === 'cancelled') {
+            $title   = 'Đơn hàng đã bị hủy';
+            $message = "Đơn hàng #{$code} đã bị hủy.";
+        } else {
+            $title   = 'Cập nhật trạng thái đơn hàng';
+            $message = "Đơn hàng #{$code} đã chuyển sang trạng thái: {$label}.";
+        }
     }
 
-    sendUserNotification(
-        $conn,
-        $userId,
-        __('notif_order_status'),
-        sprintf(__('notif_order_status_msg'), $code, getOrderStatusLabel($newStatus)),
-        'info'
-    );
+    sendUserNotification($conn, $userId, $title, $message, $type);
 }
 
 function restockOrderItems($conn, $orderId) {
@@ -222,14 +236,23 @@ function getAverageReviewRating($conn) {
 }
 
 function getOrderStatusClass($status) {
+    // Mapping status DB mới: pending, processing, shipped, completed, cancelled
     $classes = [
-        'pending' => 'status-pending',
-        'confirmed' => 'status-confirmed',
-        'shipping' => 'status-shipping',
-        'delivered' => 'status-delivered',
-        'cancelled' => 'status-cancelled'
+        'pending'    => 'status-pending',
+        'processing' => 'status-processing',
+        'shipped'    => 'status-shipped',
+        'completed'  => 'status-completed',
+        'cancelled'  => 'status-cancelled',
     ];
     return $classes[$status] ?? '';
+}
+
+/**
+ * Stub: bảng coupons đã tồn tại trong DB mới, không cần tạo động nữa.
+ * Giữ hàm này để tránh lỗi undefined function ở các file cũ còn gọi nó.
+ */
+function ensureCouponsTable($conn) {
+    // No-op: coupons table already exists in current schema
 }
 
 function calculateShippingFee($subtotal) {

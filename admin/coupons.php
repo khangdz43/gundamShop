@@ -38,13 +38,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $discountValue = (float)($_POST['discount_value'] ?? 0);
     $minOrder = (float)($_POST['min_order'] ?? 0);
     $maxUses = ($_POST['max_uses'] ?? '') !== '' ? (int)$_POST['max_uses'] : null;
-    $startsAt = trim($_POST['starts_at'] ?? '') ?: null;
-    $expiresAt = trim($_POST['expires_at'] ?? '') ?: null;
+
+    // Nhận toàn bộ dữ liệu phân rã Thời gian + Giờ giấc từ Request
+    $startDay   = $_POST['start_day'] ?? '';
+    $startMonth = $_POST['start_month'] ?? '';
+    $startYear  = $_POST['start_year'] ?? '';
+    $startHour  = $_POST['start_hour'] ?? '';
+    $startMin   = $_POST['start_min'] ?? '';
+
+    // Mặc định giây bắt đầu là 00 nếu không được truyền
+    $startSec   = '00'; 
+
+    $endDay     = $_POST['end_day'] ?? '';
+    $endMonth   = $_POST['end_month'] ?? '';
+    $endYear    = $_POST['end_year'] ?? '';
+    $endHour    = $_POST['end_hour'] ?? '';
+    $endMin     = $_POST['end_min'] ?? '';
+
+    // Mặc định giây kết thúc là 59 để tối ưu biên độ thời gian trong ngày
+    $endSec     = '59'; 
+
     $isActive = isset($_POST['is_active']) ? 1 : 0;
 
     if ($code === '') $errors[] = 'Vui lòng nhập mã giảm giá';
     if ($discountValue <= 0) $errors[] = 'Giá trị giảm phải lớn hơn 0';
     if ($discountType === 'percent' && $discountValue > 100) $errors[] = 'Giảm % tối đa 100';
+
+    // Xử lý đóng gói chuỗi DATETIME hoàn chỉnh (YYYY-MM-DD HH:MM:SS)
+    $startsAt = null;
+    if ($startDay && $startMonth && $startYear && $startHour !== '' && $startMin !== '') {
+        $startsAtStr = sprintf('%04d-%02d-%02d %02d:%02d:%02d', $startYear, $startMonth, $startDay, $startHour, $startMin, $startSec);
+        if (strtotime($startsAtStr)) {
+            $startsAt = $startsAtStr;
+        }
+    }
+
+    $expiresAt = null;
+    if ($endDay && $endMonth && $endYear && $endHour !== '' && $endMin !== '') {
+        $expiresAtStr = sprintf('%04d-%02d-%02d %02d:%02d:%02d', $endYear, $endMonth, $endDay, $endHour, $endMin, $endSec);
+        if (strtotime($expiresAtStr)) {
+            $expiresAt = $expiresAtStr;
+        }
+    }
 
     if (empty($errors)) {
         if ($maxUses === null) {
@@ -112,16 +147,75 @@ include '../includes/header.php';
                         <input type="number" name="max_uses" class="form-control" min="1" placeholder="Không giới hạn">
                     </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div class="form-group">
-                        <label>Bắt đầu</label>
-                        <input type="datetime-local" name="starts_at" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Hết hạn</label>
-                        <input type="datetime-local" name="expires_at" class="form-control">
+                
+                <div class="form-group">
+                    <label>Chọn nhanh thời gian áp dụng</label>
+                    <select id="couponTimePreset" class="form-control">
+                        <option value="">Tùy chỉnh thủ công</option>
+                        <option value="today">Hôm nay</option>
+                        <option value="7days">7 ngày</option>
+                        <option value="30days">30 ngày</option>
+                        <option value="90days">90 ngày</option>
+                        <option value="365days">1 năm</option>
+                    </select>
+                </div>
+
+                <!-- BỘ Ô SELECT TÍNH CẢ GIỜ VÀ PHÚT: BẮT ĐẦU -->
+                <div class="form-group">
+                    <label style="font-weight:600; color:var(--text-color);">Thời gian bắt đầu hiệu lực</label>
+                    <div style="display:flex; gap:6px; flex-wrap: wrap;">
+                        <select name="start_day" class="form-control" style="flex:1; min-width:65px;">
+                            <option value="">Ngày</option>
+                            <?php for($d=1; $d<=31; $d++) echo "<option value='$d'>".sprintf('%02d',$d)."</option>"; ?>
+                        </select>
+                        <select name="start_month" class="form-control" style="flex:1; min-width:65px;">
+                            <option value="">Tháng</option>
+                            <?php for($m=1; $m<=12; $m++) echo "<option value='$m'>".sprintf('%02d',$m)."</option>"; ?>
+                        </select>
+                        <select name="start_year" class="form-control" style="flex:1.2; min-width:80px;">
+                            <option value="">Năm</option>
+                            <?php for($y=2024; $y<=2032; $y++) echo "<option value='$y'>$y</option>"; ?>
+                        </select>
+                        <span style="align-self:center; font-weight:bold; padding:0 2px;">-</span>
+                        <select name="start_hour" class="form-control" style="flex:1; min-width:65px;">
+                            <option value="">Giờ</option>
+                            <?php for($h=0; $h<=23; $h++) echo "<option value='$h'>".sprintf('%02d',$h)."</option>"; ?>
+                        </select>
+                        <select name="start_min" class="form-control" style="flex:1; min-width:65px;">
+                            <option value="">Phút</option>
+                            <?php for($i=0; $i<=55; $i+=5) echo "<option value='$i'>".sprintf('%02d',$i)."</option>"; // Bước nhảy 5 phút cho gọn ?>
+                        </select>
                     </div>
                 </div>
+
+                <!-- BỘ Ô SELECT TÍNH CẢ GIỜ VÀ PHÚT: HẾT HẠN -->
+                <div class="form-group">
+                    <label style="font-weight:600; color:var(--text-color);">Thời gian hết hạn mã</label>
+                    <div style="display:flex; gap:6px; flex-wrap: wrap;">
+                        <select name="end_day" class="form-control" style="flex:1; min-width:65px;">
+                            <option value="">Ngày</option>
+                            <?php for($d=1; $d<=31; $d++) echo "<option value='$d'>".sprintf('%02d',$d)."</option>"; ?>
+                        </select>
+                        <select name="end_month" class="form-control" style="flex:1; min-width:65px;">
+                            <option value="">Tháng</option>
+                            <?php for($m=1; $m<=12; $m++) echo "<option value='$m'>".sprintf('%02d',$m)."</option>"; ?>
+                        </select>
+                        <select name="end_year" class="form-control" style="flex:1.2; min-width:80px;">
+                            <option value="">Năm</option>
+                            <?php for($y=2024; $y<=2032; $y++) echo "<option value='$y'>$y</option>"; ?>
+                        </select>
+                        <span style="align-self:center; font-weight:bold; padding:0 2px;">-</span>
+                        <select name="end_hour" class="form-control" style="flex:1; min-width:65px;">
+                            <option value="">Giờ</option>
+                            <?php for($h=0; $h<=23; $h++) echo "<option value='$h'>".sprintf('%02d',$h)."</option>"; ?>
+                        </select>
+                        <select name="end_min" class="form-control" style="flex:1; min-width:65px;">
+                            <option value="">Phút</option>
+                            <?php for($i=0; $i<=59; $i++) echo "<option value='$i'>".sprintf('%02d',$i)."</option>"; ?>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                         <input type="checkbox" name="is_active" value="1" checked> Kích hoạt ngay
@@ -131,6 +225,7 @@ include '../includes/header.php';
             </form>
         </div>
 
+        <!-- DANH SÁCH MÃ GIẢM GIÁ -->
         <div class="card" style="overflow-x:auto;">
             <h2 style="margin-top:0"><i class="fas fa-list"></i> Danh sách mã (<?php echo count($coupons); ?>)</h2>
             <?php if (empty($coupons)): ?>
@@ -142,7 +237,7 @@ include '../includes/header.php';
                         <th>Mã</th>
                         <th>Giảm</th>
                         <th>Đã dùng</th>
-                        <th>Hết hạn</th>
+                        <th>Hiệu lực</th>
                         <th>TT</th>
                         <th></th>
                     </tr>
@@ -162,7 +257,10 @@ include '../includes/header.php';
                             <?php if ((float)$c['min_order'] > 0): ?><br><small>Từ <?php echo formatPrice($c['min_order']); ?></small><?php endif; ?>
                         </td>
                         <td><?php echo (int)$c['used_count']; ?><?php echo $c['max_uses'] ? ' / ' . (int)$c['max_uses'] : ''; ?></td>
-                        <td><?php echo $c['expires_at'] ? date('d/m/Y', strtotime($c['expires_at'])) : '—'; ?></td>
+                        <td>
+                            <div><strong>Bắt đầu:</strong> <?php echo $c['starts_at'] ? date('d/m/Y H:i:s', strtotime($c['starts_at'])) : '—'; ?></div>
+                            <div><strong>Hết hạn:</strong> <?php echo $c['expires_at'] ? date('d/m/Y H:i:s', strtotime($c['expires_at'])) : '—'; ?></div>
+                        </td>
                         <td>
                             <span class="status-badge <?php echo $c['is_active'] ? 'status-confirmed' : 'status-cancelled'; ?>">
                                 <?php echo $c['is_active'] ? 'Active' : 'Off'; ?>
@@ -188,5 +286,88 @@ include '../includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const presetSelect = document.getElementById('couponTimePreset');
+    
+    // Ánh xạ Dom tới các ô Select options thời gian bắt đầu
+    const sDay   = document.querySelector('select[name="start_day"]');
+    const sMonth = document.querySelector('select[name="start_month"]');
+    const sYear  = document.querySelector('select[name="start_year"]');
+    const sHour  = document.querySelector('select[name="start_hour"]');
+    const sMin   = document.querySelector('select[name="start_min"]');
+    
+    // Ánh xạ Dom tới các ô Select options thời gian hết hạn
+    const eDay   = document.querySelector('select[name="end_day"]');
+    const eMonth = document.querySelector('select[name="end_month"]');
+    const eYear  = document.querySelector('select[name="end_year"]');
+    const eHour  = document.querySelector('select[name="end_hour"]');
+    const eMin   = document.querySelector('select[name="end_min"]');
+
+    if (!presetSelect || !sDay || !sMonth || !sYear || !sHour || !sMin || !eDay || !eMonth || !eYear || !eHour || !eMin) return;
+
+    // Cập nhật giá trị đồng bộ lên UI bao gồm cả Giờ và Phút
+    const updateSelectFields = (startDate, endDate) => {
+        if (!startDate || !endDate) {
+            sDay.value = ''; sMonth.value = ''; sYear.value = ''; sHour.value = ''; sMin.value = '';
+            eDay.value = ''; eMonth.value = ''; eYear.value = ''; eHour.value = ''; eMin.value = '';
+            return;
+        }
+        // Điền mốc bắt đầu
+        sDay.value   = startDate.getDate();
+        sMonth.value = startDate.getMonth() + 1;
+        sYear.value  = startDate.getFullYear();
+        sHour.value  = startDate.getHours();
+        sMin.value   = Math.floor(startDate.getMinutes() / 5) * 5; // Làm tròn theo bước nhảy option 5 phút
+
+        // Điền mốc kết thúc
+        eDay.value   = endDate.getDate();
+        eMonth.value = endDate.getMonth() + 1;
+        eYear.value  = endDate.getFullYear();
+        eHour.value  = endDate.getHours();
+        eMin.value   = endDate.getMinutes();
+    };
+
+    presetSelect.addEventListener('change', function() {
+        const preset = this.value;
+        if (!preset) {
+            updateSelectFields(null, null);
+            return;
+        }
+
+        const now = new Date();
+        const start = new Date(now);
+        const end = new Date(now);
+
+        // Quy ước chuẩn: Thời gian bắt đầu tính từ đầu ngày hôm nay (00:00:00)
+        start.setHours(0, 0, 0, 0);
+
+        switch (preset) {
+            case 'today':
+                end.setHours(23, 59, 0, 0);
+                break;
+            case '7days':
+                end.setDate(end.getDate() + 7);
+                end.setHours(23, 59, 0, 0);
+                break;
+            case '30days':
+                end.setDate(end.getDate() + 30);
+                end.setHours(23, 59, 0, 0);
+                break;
+            case '90days':
+                end.setDate(end.getDate() + 90);
+                end.setHours(23, 59, 0, 0);
+                break;
+            case '365days':
+                end.setDate(end.getDate() + 365);
+                end.setHours(23, 59, 0, 0);
+                break;
+        }
+
+        updateSelectFields(start, end);
+    });
+});
+</script>
 
 <?php include '../includes/footer.php'; ?>

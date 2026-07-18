@@ -15,29 +15,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($title) || empty($content)) {
         $message = "Vui lòng nhập tiêu đề và nội dung thông báo.";
     } else {
-        if ($target === 'all') {
-            // Mass notification: user_id = NULL
-            $stmt = $conn->prepare("INSERT INTO notifications (user_id, title, message) VALUES (NULL, ?, ?)");
-            $stmt->bind_param("ss", $title, $content);
-            if ($stmt->execute()) {
-                $message = "Đã gửi thông báo hàng loạt thành công!";
-                $success = true;
-            } else {
-                $message = "Lỗi khi gửi thông báo: " . $conn->error;
-            }
+        // Khởi động Transaction để bảo đảm dữ liệu ghi đồng bộ vào cả 2 bảng
+        $conn->begin_transaction();
+
+        try {
+            // Bước 1: Chèn nội dung cốt lõi vào bảng notifications
+            $type = ($target === 'all') ? 'system' : 'personal';
+            $stmt = $conn->prepare("INSERT INTO notifications (title, message, type) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $title, $content, $type);
+            $stmt->execute();
+            
+            // Lấy ra ID tự động tăng vừa được sinh ra của thông báo này
+            $notificationId = $conn->insert_id;
             $stmt->close();
-        } else {
-            // Specific user notification: user_id = (int)$target
-            $targetUserId = (int)$target;
-            $stmt = $conn->prepare("INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)");
-            $stmt->bind_param("iss", $targetUserId, $title, $content);
-            if ($stmt->execute()) {
-                $message = "Đã gửi thông báo thành công cho người dùng!";
-                $success = true;
+
+            // Bước 2: Phân phối thông báo dựa trên Target được chọn
+            if ($target === 'all') {
+                // Lấy danh sách ID của tất cả người dùng có role là 'user'
+                $res = $conn->query("SELECT id FROM users WHERE role = 'user'");
+                $allUsers = $res->fetch_all(MYSQLI_ASSOC);
+
+                if (!empty($allUsers)) {
+                    // Chuẩn bị câu lệnh chèn hàng loạt vào bảng liên kết trung gian
+                    $stmtLink = $conn->prepare("INSERT INTO notification_users (user_id, notification_id) VALUES (?, ?)");
+                    foreach ($allUsers as $u) {
+                        $stmtLink->bind_param("ii", $u['id'], $notificationId);
+                        $stmtLink->execute();
+                    }
+                    $stmtLink->close();
+                }
+                $message = "Đã phát hành thông báo hệ thống hàng loạt thành công!";
             } else {
-                $message = "Lỗi khi gửi thông báo: " . $conn->error;
+                // Gửi đích danh cho 1 tài khoản người dùng cụ thể
+                $targetUserId = (int)$target;
+                $stmtLink = $conn->prepare("INSERT INTO notification_users (user_id, notification_id) VALUES (?, ?)");
+                $stmtLink->bind_param("ii", $targetUserId, $notificationId);
+                $stmtLink->execute();
+                $stmtLink->close();
+                
+                $message = "Đã gửi thông báo đích danh thành công!";
             }
-            $stmt->close();
+
+            // Toàn bộ tiến trình không lỗi -> Xác nhận lưu vĩnh viễn vào ổ đĩa
+            $conn->commit();
+            $success = true;
+
+        } catch (Exception $e) {
+            // Có lỗi xảy ra trong block try -> Hoàn tác mọi thay đổi để tránh rác database
+            $conn->rollback();
+            $message = "Lỗi hệ thống khi phân phối thông báo: " . $e->getMessage();
         }
     }
 }

@@ -1168,6 +1168,8 @@ html.light-theme .product-name {
     justify-content: center;
     padding: 20px;
     border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
 }
 
 html.light-theme .detail-main-img-box {
@@ -1178,6 +1180,11 @@ html.light-theme .detail-main-img-box {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.detail-main-img-box:hover .detail-main-img {
+    transform: scale(1.08);
 }
 
 .detail-thumbnails {

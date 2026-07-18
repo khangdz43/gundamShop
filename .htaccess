@@ -1,0 +1,41 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # BẮT BUỘC phải có dấu ngoặc kép nếu đường dẫn có khoảng trắng
+    # RewriteBase "/KNOWLEDGE IT/BÁO CÁO TTDN-MINH/GUNDAM/"
+    # Disabled above because spaces and Unicode in the path can cause Apache to throw 500 errors.
+    # If you move the project to a path without spaces/Unicode, restore or set a simple base like:
+    # RewriteBase "/GUNDAM/"
+
+    RewriteRule ^public/(.*)$ - [L]
+    RewriteRule ^admin/(.*)$ - [L]
+    RewriteRule ^api/(.*)$ - [L]
+    RewriteRule ^assets/(.*)$ - [L]
+    RewriteRule ^config/(.*)$ - [L]
+    RewriteRule ^includes/(.*)$ - [L]
+
+    RewriteRule ^login(?:\.php)?$ public/login.php [L,QSA]
+    RewriteRule ^register(?:\.php)?$ public/register.php [L,QSA]
+    RewriteRule ^logout(?:\.php)?$ public/logout.php [L,QSA]
+    RewriteRule ^checkout(?:\.php)?$ public/checkout.php [L,QSA]
+    RewriteRule ^cart(?:\.php)?$ public/cart.php [L,QSA]
+    RewriteRule ^profile(?:\.php)?$ public/profile.php [L,QSA]
+    RewriteRule ^change_password(?:\.php)?$ public/change_password.php [L,QSA]
+    RewriteRule ^product(?:\.php)?$ public/product/list.php [L,QSA]
+    RewriteRule ^product/([^/]+)/?$ public/product/detail.php?id=$1 [L,QSA]
+    RewriteRule ^products(?:\.php)?$ public/product/list.php [L,QSA]
+    RewriteRule ^products_detail(?:\.php)?$ public/product/detail.php [L,QSA]
+    RewriteRule ^products_detail/([^/]+)/?$ public/product/detail.php?id=$1 [L,QSA]
+    RewriteRule ^orders(?:\.php)?$ public/order/history.php [L,QSA]
+    RewriteRule ^order_detail(?:\.php)?$ public/order/detail.php [L,QSA]
+    RewriteRule ^order_detail/([^/]+)/?$ public/order/detail.php?id=$1 [L,QSA]
+    RewriteRule ^orders(?:/.*)?$ public/order/history.php [L,QSA]
+    RewriteRule ^order_success(?:\.php)?$ public/order/success.php [L,QSA]
+    RewriteRule ^order/([^/]+)/?$ public/order/detail.php?id=$1 [L,QSA]
+    RewriteRule ^checkout$ public/checkout.php [L,QSA]
+    RewriteRule ^cart$ public/cart.php [L,QSA]
+    RewriteRule ^login$ public/login.php [L,QSA]
+    RewriteRule ^register$ public/register.php [L,QSA]
+    RewriteRule ^index\.php$ public/index.php [L,QSA]
+    RewriteRule ^$ public/index.php [L,QSA]
+</IfModule>

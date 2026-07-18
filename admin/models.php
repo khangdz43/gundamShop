@@ -1,34 +1,43 @@
 <?php
 require_once '../includes/auth.php';
-requireAdmin();
+requirePermission('products');
 
 $basePath = '../';
 
 // Xử lý xóa sản phẩm
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
-    
+
+    $check_sql = "SELECT COUNT(*) AS used_count FROM order_items WHERE product_id = $id";
+    $check_result = mysqli_query($conn, $check_sql);
+    $check_data = mysqli_fetch_assoc($check_result);
+
+    if (!empty($check_data['used_count']) && (int)$check_data['used_count'] > 0) {
+        header("Location: models.php?message=Sản phẩm này đang được sử dụng trong đơn hàng, không thể xóa. Bạn có thể ẩn sản phẩm thay vì xóa.&error=true");
+        exit();
+    }
+
     // Lấy thông tin ảnh để xóa
     $sql_img = "SELECT image FROM products WHERE id = $id";
     $result_img = mysqli_query($conn, $sql_img);
     $product_img = mysqli_fetch_assoc($result_img);
-    
+
     // Xóa ảnh nếu không phải ảnh mặc định
     if ($product_img['image'] != "models_default_img.jpeg" && file_exists("../assets/images/" . $product_img['image'])) {
         unlink("../assets/images/" . $product_img['image']);
     }
-    
+
     // Xóa sản phẩm từ database
     $delete_sql = "DELETE FROM products WHERE id = $id";
     mysqli_query($conn, $delete_sql);
-    
+
     // Thông báo thành công
     header("Location: models.php?message=Xóa sản phẩm thành công&success=true");
     exit();
 }
 
-// Lấy danh sách sản phẩm
-$sql = "SELECT * FROM products ORDER BY id ASC";
+// Lấy danh sách sản phẩm (JOIN với categories để lấy tên danh mục)
+$sql = "SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.id ASC";
 $result = mysqli_query($conn, $sql);
 
 // Kiểm tra thông báo từ URL
@@ -840,10 +849,10 @@ if (isset($_GET['message'])) {
                                  onerror="this.src='../assets/images/models_default_img.jpeg'">
                         </td>
                         <td>
-                            <strong style="color: white; font-size: 1.05rem;"><?php echo $row["name"]; ?></strong><br>
-                            <small style="color: #888; font-size: 0.9rem;"><?php echo $row["category"]; ?></small>
+                            <strong style="color: white; font-size: 1.05rem;"><?php echo htmlspecialchars($row["name"]); ?></strong><br>
+                            <small style="color: #888; font-size: 0.9rem;"><?php echo htmlspecialchars($row["category_name"] ?? 'Chưa phân loại'); ?></small>
                         </td>
-                        <td><span class="type-badge"><?php echo $row["type"]; ?></span></td>
+                        <td><span class="type-badge"><?php echo htmlspecialchars($row["grade"]); ?></span></td>
                         
                         <!-- Cột Giá gốc -->
                         <td class="price-cell">
@@ -908,7 +917,7 @@ if (isset($_GET['message'])) {
                                 </a>
                                 <button type="button" 
                                         class="btn-action btn-delete" 
-                                        onclick="showDeleteModal(<?php echo $row['id']; ?>, '<?php echo addslashes($row['name']); ?>', '<?php echo $row['type']; ?>', '<?php echo number_format($row['price'], 0, ',', '.'); ?>')">
+                                        onclick="showDeleteModal(<?php echo $row['id']; ?>, '<?php echo addslashes($row['name']); ?>', '<?php echo addslashes($row['grade']); ?>', '<?php echo number_format($row['price'], 0, ',', '.'); ?>')">
                                     <i class="fas fa-trash"></i> Xóa
                                 </button>
                             </div>

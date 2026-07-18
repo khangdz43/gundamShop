@@ -17,11 +17,12 @@ $startsWith = $query . '%';
 $limit = 8;
 
 $stmt = $conn->prepare(
-    "SELECT id, name, price, old_price, image, type, stock
-     FROM products
-     WHERE status = 'active'
-       AND (name LIKE ? OR description LIKE ? OR series LIKE ? OR category LIKE ? OR type LIKE ?)
-     ORDER BY CASE WHEN name LIKE ? THEN 0 ELSE 1 END, id DESC
+    "SELECT p.id, p.name, p.price, p.old_price, p.image, p.grade AS type, p.stock
+     FROM products p
+     LEFT JOIN categories c ON p.category_id = c.id
+     WHERE p.status = 'active'
+       AND (p.name LIKE ? OR p.description LIKE ? OR p.series LIKE ? OR c.name LIKE ? OR p.grade LIKE ?)
+     ORDER BY CASE WHEN p.name LIKE ? THEN 0 ELSE 1 END, p.id DESC
      LIMIT ?"
 );
 $stmt->bind_param('ssssssi', $like, $like, $like, $like, $like, $startsWith, $limit);

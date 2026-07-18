@@ -39,7 +39,7 @@ if ($type === 'orders') {
     
     $orders = $conn->query("SELECT o.*, u.username FROM orders o JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC")->fetch_all(MYSQLI_ASSOC);
     
-    $statusLabel = ['pending'=>'Chờ xác nhận','confirmed'=>'Đã xác nhận','shipping'=>'Đang giao','delivered'=>'Đã giao','cancelled'=>'Đã hủy'];
+    $statusLabel = ['pending'=>'Chờ xác nhận','processing'=>'Đang xử lý','shipped'=>'Đang giao hàng','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
     
     echo '<h2>' . $title . '</h2>';
     echo '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-family:Arial;font-size:12px;">';
@@ -75,7 +75,7 @@ if ($type === 'orders') {
     
     $users = $conn->query("SELECT id, username, email, full_name, phone, role, is_active, created_at FROM users ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
     
-    $posLabel = ['admin'=>'Quản trị viên','order_manager'=>'QL Đơn hàng','return_manager'=>'QL Đổi trả','staff'=>'Nhân viên'];
+    $posLabel = ['admin'=>'Quản trị viên','order_manager'=>'QL Đơn hàng','product_manager'=>'QL Sản phẩm','staff'=>'Nhân viên'];
     
     echo '<h2>' . $title . '</h2>';
     echo '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-family:Arial;font-size:12px;">';
@@ -108,7 +108,7 @@ if ($type === 'orders') {
             SUM(CASE WHEN status != 'cancelled' THEN 1 ELSE 0 END) as success_orders,
             SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
             COALESCE(SUM(CASE WHEN status != 'cancelled' THEN total ELSE 0 END), 0) as revenue,
-            COALESCE(SUM(CASE WHEN status = 'delivered' THEN total ELSE 0 END), 0) as delivered_revenue
+            COALESCE(SUM(CASE WHEN status = 'completed' THEN total ELSE 0 END), 0) as delivered_revenue
         FROM orders 
         GROUP BY month 
         ORDER BY month DESC

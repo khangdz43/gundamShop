@@ -12,10 +12,10 @@ $basePath = '../';
 $revenue30 = $conn->query("SELECT COALESCE(SUM(total),0) as rev, COUNT(*) as cnt FROM orders WHERE status NOT IN ('cancelled') AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetch_assoc();
 
 // Top 5 sản phẩm bán chạy
-$top5 = $conn->query("SELECT p.name, p.type, p.price, SUM(oi.quantity) as sold FROM order_items oi JOIN products p ON oi.product_id = p.id JOIN orders o ON oi.order_id = o.id WHERE o.status NOT IN ('cancelled') GROUP BY oi.product_id ORDER BY sold DESC LIMIT 5")->fetch_all(MYSQLI_ASSOC);
+$top5 = $conn->query("SELECT p.name, p.grade, p.price, SUM(oi.quantity) as sold FROM order_items oi JOIN products p ON oi.product_id = p.id JOIN orders o ON oi.order_id = o.id WHERE o.status NOT IN ('cancelled') GROUP BY oi.product_id ORDER BY sold DESC LIMIT 5")->fetch_all(MYSQLI_ASSOC);
 
 // Sản phẩm tồn kho thấp (< 10)
-$lowStock = $conn->query("SELECT name, type, stock, price FROM products WHERE status='active' AND stock < 10 ORDER BY stock ASC LIMIT 8")->fetch_all(MYSQLI_ASSOC);
+$lowStock = $conn->query("SELECT name, grade, stock, price FROM products WHERE status='active' AND stock < 10 ORDER BY stock ASC LIMIT 8")->fetch_all(MYSQLI_ASSOC);
 
 // Đơn hàng theo trạng thái
 $orderStats = $conn->query("SELECT status, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM orders GROUP BY status")->fetch_all(MYSQLI_ASSOC);
@@ -24,7 +24,7 @@ $orderStats = $conn->query("SELECT status, COUNT(*) as cnt, COALESCE(SUM(total),
 $revenueByMonth = $conn->query("SELECT DATE_FORMAT(created_at,'%Y-%m') as month, COUNT(*) as orders, COALESCE(SUM(total),0) as revenue FROM orders WHERE status NOT IN ('cancelled') AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH) GROUP BY month ORDER BY month")->fetch_all(MYSQLI_ASSOC);
 
 // Tổng tồn kho
-$stockSummary = $conn->query("SELECT type, COUNT(*) as products, SUM(stock) as total_stock FROM products WHERE status='active' GROUP BY type")->fetch_all(MYSQLI_ASSOC);
+$stockSummary = $conn->query("SELECT grade, COUNT(*) as products, SUM(stock) as total_stock FROM products WHERE status='active' GROUP BY grade")->fetch_all(MYSQLI_ASSOC);
 
 // Format context data
 $contextData  = "\n\n=== DỮ LIỆU KINH DOANH THỰC TẾ (" . date('d/m/Y H:i') . ") ===\n";
@@ -32,16 +32,16 @@ $contextData .= "Doanh thu 30 ngày: " . number_format($revenue30['rev'], 0, ','
 
 $contextData .= "\nTop 5 sản phẩm bán chạy:\n";
 foreach ($top5 as $p) {
-    $contextData .= "- {$p['name']} ({$p['type']}): bán " . ($p['sold'] ?? 0) . " cái, giá " . number_format($p['price'],0,'.','.') . "đ\n";
+    $contextData .= "- {$p['name']} ({$p['grade']}): bán " . ($p['sold'] ?? 0) . " cái, giá " . number_format($p['price'],0,'.','.') . "đ\n";
 }
 
 $contextData .= "\nSản phẩm sắp hết hàng (stock < 10):\n";
 foreach ($lowStock as $p) {
-    $contextData .= "- {$p['name']} ({$p['type']}): còn {$p['stock']} cái\n";
+    $contextData .= "- {$p['name']} ({$p['grade']}): còn {$p['stock']} cái\n";
 }
 
 $contextData .= "\nTrạng thái đơn hàng:\n";
-$statusLabel = ['pending'=>'Chờ xác nhận','confirmed'=>'Đã xác nhận','shipping'=>'Đang giao','delivered'=>'Đã giao','cancelled'=>'Đã hủy'];
+$statusLabel = ['pending'=>'Chờ xác nhận','processing'=>'Đang xử lý','shipped'=>'Đang giao hàng','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
 foreach ($orderStats as $s) {
     $contextData .= "- " . ($statusLabel[$s['status']] ?? $s['status']) . ": " . $s['cnt'] . " đơn, " . number_format($s['total'],0,'.','.') . "đ\n";
 }
@@ -53,7 +53,7 @@ foreach ($revenueByMonth as $m) {
 
 $contextData .= "\nTồn kho theo phân khúc:\n";
 foreach ($stockSummary as $s) {
-    $contextData .= "- {$s['type']}: {$s['products']} sản phẩm, tổng {$s['total_stock']} cái\n";
+    $contextData .= "- {$s['grade']}: {$s['products']} sản phẩm, tổng {$s['total_stock']} cái\n";
 }
 $contextData .= "===\n";
 
@@ -292,7 +292,7 @@ async function sendAdminAI() {
 
         var resp = await fetch(adminAiApiUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-type': 'application/json' },
             body: JSON.stringify(payload),
             credentials: 'same-origin'
         });

@@ -3,7 +3,7 @@
  * API: Hủy đơn hàng
  * POST /api/cancel_order.php
  * Body: order_id (int)
- * Chỉ hủy được khi status = pending hoặc confirmed (chưa vận chuyển)
+ * Chỉ hủy được khi status = pending hoặc processing (chưa vận chuyển)
  */
 require_once '../includes/auth.php';
 
@@ -32,7 +32,7 @@ if (!$order) {
     jsonResponse(['success' => false, 'message' => __('err_order_not_found')], 404);
 }
 
-$cancelable = ['pending', 'confirmed'];
+$cancelable = ['pending', 'processing'];
 if (!in_array($order['status'], $cancelable, true)) {
     jsonResponse([
         'success' => false,

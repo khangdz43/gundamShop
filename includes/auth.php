@@ -33,12 +33,31 @@ function ensureRememberColumns($conn) {
 }
 
 
+function getAppBasePath() {
+    $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+    $segments = explode('/', trim($scriptName, '/'));
+    $baseSegments = [];
+
+    foreach ($segments as $segment) {
+        if ($segment === '') {
+            continue;
+        }
+
+        if (in_array($segment, ['public', 'admin', 'api', 'config', 'includes', 'assets'], true)) {
+            break;
+        }
+
+        $baseSegments[] = $segment;
+    }
+
+    $basePath = '/' . implode('/', $baseSegments);
+    return $basePath === '/' ? '/' : rtrim($basePath, '/') . '/';
+}
+
 function getAppBaseUrl() {
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $base = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-    $base = $base === '/' ? '' : rtrim($base, '/');
-    return $scheme . '://' . $host . $base;
+    return $scheme . '://' . $host . getAppBasePath();
 }
 
 function isLoggedIn() {
@@ -68,16 +87,16 @@ function hasPermission($action) {
 
     /**
      * Mỗi chức vụ chỉ được truy cập đúng chức năng của mình:
-     *  - order_manager  : quản lý đơn hàng
-     *  - return_manager : quản lý đổi trả
-     *  - staff          : xem đơn hàng + đổi trả (không sửa)
+     *  - order_manager   : quản lý đơn hàng
+     *  - product_manager : quản lý sản phẩm
+     *  - staff           : chỉ xem Dashboard và Thông báo
      * 'dashboard' luôn được phép cho mọi nhân viên.
      * 'notifications' chỉ hiển thị phần đọc (gửi thông báo chỉ admin).
      */
     $permissions = [
-        'order_manager'  => ['dashboard', 'orders', 'notifications'],
-        'return_manager' => ['dashboard', 'returns', 'notifications'],
-        'staff'          => ['dashboard', 'orders', 'returns', 'notifications'],
+        'order_manager'   => ['dashboard', 'orders', 'notifications'],
+        'product_manager' => ['dashboard', 'products', 'notifications'],
+        'staff'           => ['dashboard', 'notifications'],
     ];
 
     $allowed = $permissions[$pos] ?? [];
@@ -135,7 +154,7 @@ function getCurrentUser($conn) {
     if (!isLoggedIn()) return null;
 
     $userId = getUserId();
-    $stmt = $conn->prepare("SELECT id, username, email, full_name, phone, address, role FROM users WHERE id = ? AND is_active = 1");
+    $stmt = $conn->prepare("SELECT id, username, email, full_name, phone, address, role, position FROM users WHERE id = ? AND is_active = 1");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
@@ -195,7 +214,7 @@ function tryRememberLogin($conn) {
     $hash = hash('sha256', $token);
 
         $stmt = $conn->prepare(
-    "SELECT id, username, password, role, is_active FROM users WHERE remember_token = ? AND remember_expires > NOW() AND is_active = 1"
+    "SELECT id, username, password, role, position, is_active FROM users WHERE remember_token = ? AND remember_expires > NOW() AND is_active = 1"
 );
     $stmt->bind_param("s", $hash);
     $stmt->execute();

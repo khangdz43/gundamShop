@@ -7,9 +7,9 @@
         </div>
         <div class="footer-col">
             <h4><?php echo __('footer_links'); ?></h4>
-            <a href="<?php echo $basePath ?? ''; ?>products.php"><?php echo __('products'); ?></a>
-            <a href="<?php echo $basePath ?? ''; ?>products.php?type=SALE"><?php echo __('footer_promotions'); ?></a>
-            <a href="<?php echo $basePath ?? ''; ?>orders.php"><?php echo __('footer_track_order'); ?></a>
+            <a href="<?php echo $basePath ?? ''; ?>products"><?php echo __('products'); ?></a>
+            <a href="<?php echo $basePath ?? ''; ?>products?type=SALE"><?php echo __('footer_promotions'); ?></a>
+            <a href="<?php echo $basePath ?? ''; ?>orders"><?php echo __('footer_track_order'); ?></a>
         </div>
         <div class="footer-col">
             <h4><?php echo __('footer_contact'); ?></h4>

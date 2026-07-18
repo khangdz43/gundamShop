@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 requireLogin();
 
 if (isAdmin()) redirect('admin/index.php');
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->close();
 
             $conn->commit();
-            redirect('order_success.php?code=' . urlencode($orderCode));
+            redirect('order_success?code=' . urlencode($orderCode));
         } catch (Exception $e) {
             $conn->rollback();
             $errors[] = sprintf(__('order_failed'), $e->getMessage());
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = __('checkout_title') . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container">
@@ -201,7 +201,7 @@ include 'includes/header.php';
             <h2 style="margin-top:0; border-bottom: 2px solid var(--primary-blue); padding-bottom: 12px;"><?php echo sprintf(__('order_items'), count($cartItems)); ?></h2>
             <?php foreach ($cartItems as $item): ?>
             <div class="checkout-item">
-                <img src="assets/images/<?php echo htmlspecialchars($item['image'] ?: 'LOGO.jpg'); ?>" class="checkout-item-img" onerror="this.src='assets/images/LOGO.jpg'">
+                <img src="<?php echo getAppBasePath(); ?>assets/images/<?php echo htmlspecialchars($item['image'] ?: 'LOGO.jpg'); ?>" class="checkout-item-img" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
                 <div style="flex:1">
                     <div class="checkout-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
                     <div style="color:var(--text-muted);font-size:0.85rem">x<?php echo $item['quantity']; ?></div>
@@ -265,4 +265,4 @@ async function applyCoupon() {
 }
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

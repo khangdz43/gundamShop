@@ -2,6 +2,8 @@
 require_once '../includes/auth.php';
 requireAdmin();
 
+$basePath = '../';
+
 $userId = (int)($_GET['id'] ?? 0);
 $stmt   = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->bind_param("i", $userId);
@@ -21,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone     = trim($_POST['phone'] ?? '');
     $newPass   = $_POST['password'] ?? '';
     $role      = in_array($_POST['role'] ?? '', ['user','employee','admin']) ? $_POST['role'] : $user['role'];
-    $position  = in_array($_POST['position'] ?? '', ['admin','order_manager','return_manager','staff']) ? $_POST['position'] : null;
+    $position  = in_array($_POST['position'] ?? '', ['admin','order_manager','product_manager','staff']) ? $_POST['position'] : null;
 
     if ($role === 'user') $position = null;
     if ($role === 'admin') $position = 'admin';
@@ -114,9 +116,9 @@ include '../includes/header.php';
                 <div class="form-group" id="positionGroup" style="<?php echo $user['role']!=='employee' ? 'display:none' : ''; ?>">
                     <label>Chức vụ</label>
                     <select name="position" class="form-control" onchange="updatePermPreview()">
-                        <option value="order_manager"  <?php echo $user['position']==='order_manager'  ? 'selected' : ''; ?>>QL Đơn hàng</option>
-                        <option value="return_manager" <?php echo $user['position']==='return_manager' ? 'selected' : ''; ?>>QL Đổi trả</option>
-                        <option value="staff"          <?php echo $user['position']==='staff'          ? 'selected' : ''; ?>>Nhân viên</option>
+                        <option value="order_manager"     <?php echo $user['position']==='order_manager'     ? 'selected' : ''; ?>>QL Đơn hàng</option>
+                        <option value="product_manager"   <?php echo $user['position']==='product_manager'   ? 'selected' : ''; ?>>QL Sản phẩm</option>
+                        <option value="staff"             <?php echo $user['position']==='staff'             ? 'selected' : ''; ?>>Nhân viên</option>
                     </select>
                 </div>
             </div>
@@ -143,9 +145,9 @@ include '../includes/header.php';
 <script>
 var permMap = {
     'user':           [],
-    'employee-order_manager':  ['Dashboard', 'Xem & cập nhật Đơn hàng'],
-    'employee-return_manager': ['Dashboard', 'Xem & xử lý Đổi trả'],
-    'employee-staff':          ['Dashboard', 'Xem Đơn hàng', 'Xem Đổi trả'],
+    'employee-order_manager':   ['Dashboard', 'Quản lý Đơn hàng'],
+    'employee-product_manager': ['Dashboard', 'Quản lý Sản phẩm'],
+    'employee-staff':           ['Dashboard', 'Thông báo'],
 };
 function updatePositionVis() {
     var role = document.getElementById('roleSelect')?.value;

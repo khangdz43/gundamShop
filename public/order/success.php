@@ -45,8 +45,8 @@ include __DIR__ . '/../../includes/header.php';
         </div>
         <?php endif; ?>
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-            <a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-blue"><i class="fas fa-receipt"></i> <?php echo __('view_detail'); ?></a>
-            <a href="products.php" class="btn btn-gray"><i class="fas fa-shopping-bag"></i> <?php echo __('continue_shopping'); ?></a>
+            <a href="<?php echo getAppBasePath(); ?>order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-blue"><i class="fas fa-receipt"></i> <?php echo __('view_detail'); ?></a>
+            <a href="<?php echo getAppBasePath(); ?>products.php" class="btn btn-gray"><i class="fas fa-shopping-bag"></i> <?php echo __('continue_shopping'); ?></a>
         </div>
     </div>
 </div>

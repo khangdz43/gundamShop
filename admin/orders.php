@@ -132,7 +132,11 @@ if ($sortBy === 'date_asc') {
 }
 
 // 6. Lấy danh sách đơn hàng thực tế bằng Prepared Statement
-$mainSql = "SELECT o.*, u.username FROM orders o JOIN users u ON o.user_id = u.id" . $whereSql . " " . $sortSql . " LIMIT ? OFFSET ?";
+$mainSql = "SELECT o.*, u.username, " .
+           "(SELECT r.status FROM order_returns r WHERE r.order_id = o.id ORDER BY r.created_at DESC LIMIT 1) AS return_status " .
+           "FROM orders o " .
+           "JOIN users u ON o.user_id = u.id " .
+           $whereSql . " " . $sortSql . " LIMIT ? OFFSET ?";
 $stmtMain = $conn->prepare($mainSql);
 
 $mainParams = $params;
@@ -295,7 +299,13 @@ include '../includes/header.php';
                         <td><?php echo htmlspecialchars($o['phone']); ?></td>
                         <td><strong style="color:var(--primary-blue);"><?php echo formatPrice($o['total']); ?></strong></td>
                         <td><span style="font-size:0.85rem;font-weight:600;background:rgba(255,255,255,0.05);padding:3px 8px;border-radius:4px;border:1px solid var(--border-color);"><?php echo $o['payment_method'] === 'cod' ? 'COD' : 'Chuyển khoản'; ?></span></td>
-                        <td><span class="status-badge <?php echo getOrderStatusClass($o['status']); ?>"><?php echo getOrderStatusLabel($o['status']); ?></span></td>
+                        <td>
+                            <?php if (!empty($o['return_status']) && $o['return_status'] === 'pending'): ?>
+                                <span class="status-badge status-pending">Yêu cầu đổi trả</span>
+                            <?php else: ?>
+                                <span class="status-badge <?php echo getOrderStatusClass($o['status']); ?>"><?php echo getOrderStatusLabel($o['status']); ?></span>
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo date('d/m/Y H:i', strtotime($o['created_at'])); ?></td>
                         <td style="text-align:center;"><a href="order_detail.php?id=<?php echo $o['id']; ?>" class="btn btn-blue btn-sm"><?php echo __('detail'); ?></a></td>
                     </tr>

@@ -54,13 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("is", $orderId, $reason);
         
         if ($stmt->execute()) {
-            // Log a notification for admin
+            // Log a broadcast notification for admins / staff
             $username = $_SESSION['username'] ?? 'Thành viên';
-            $escapedUsername = $conn->real_escape_string($username);
-            $escapedOrderCode = $conn->real_escape_string($order['order_code']);
-            
-            $adminNotificationSql = "INSERT INTO notifications (user_id, title, message) VALUES (NULL, 'Yêu cầu đổi trả mới', 'Người dùng @" . $escapedUsername . " yêu cầu đổi trả đơn hàng #" . $escapedOrderCode . ".')";
-            $conn->query($adminNotificationSql);
+            $title = 'Yêu cầu đổi trả mới';
+            $messageText = 'Người dùng @' . $username . ' yêu cầu đổi trả đơn hàng #' . $order['order_code'] . '.';
+            sendUserNotification($conn, null, $title, $messageText, 'system');
 
             setFlash('order', 'Gửi yêu cầu đổi trả thành công. Chúng tôi sẽ duyệt trong thời gian sớm nhất.');
             redirect('order_detail.php?id=' . $orderId);
@@ -114,7 +112,7 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div style="display:flex; gap:15px; margin-top:20px;">
-                <a href="order_detail.php?id=<?php echo (int)$orderId; ?>" class="btn btn-gray" style="flex:1; text-align:center;">Hủy bỏ</a>
+                <a href="<?php echo getAppBasePath(); ?>order_detail.php?id=<?php echo (int)$orderId; ?>" class="btn btn-gray" style="flex:1; text-align:center;">Hủy bỏ</a>
                 <button type="submit" class="btn btn-blue" style="flex:2;"><i class="fas fa-paper-plane"></i> Gửi yêu cầu</button>
             </div>
         </form>

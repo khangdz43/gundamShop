@@ -41,6 +41,14 @@ Sơ đồ Use Case (Tổng thể, phân hệ Admin, phân hệ Khách hàng).
 Sơ đồ hoạt động (Activity Diagram) cho các luồng nghiệp vụ phức tạp: Đặt hàng, xử lý bộ lọc nâng cao (như bộ lọc ngày/tháng/năm bạn vừa làm), quản lý trạng thái đơn hàng.
 
 Thiết kế cơ sở dữ liệu: Sơ đồ ERD (Entity-Relationship Diagram) và đặc tả chi tiết các bảng (Database Schema như bảng orders, users, products...).
+
+
+thiết kế giao diện hệ thống 
+
+
+
+
+
 CHƯƠNG 4 Kết quả thực nghiệm 
 Giao diện thực tế của ứng dụng (Chụp màn hình các trang chính: Trang chủ, danh sách sản phẩm, quản lý đơn hàng của Admin kèm giải thích).
 
@@ -49,8 +57,31 @@ kết luận
 Những kết quả đã đạt được so với mục tiêu ban đầu.
 
 Hạn chế của hệ thống và hướng tối ưu tối sau này (Ví dụ: tối ưu index database, tích hợp cổng thanh toán online).
+1. LỜI CẢM ƠN           --> Trang i
+2. MỤC LỤC              --> Trang ii
+3. DANH MỤC HÌNH ẢNH    --> Trang iii
+4. DANH MỤC BẢNG BIỂU   --> Trang iv
+5. CHƯƠNG 1             --> Trang 1 (Bắt đầu đánh số Ả Rập)
+
+
  danh mục tham khảo
  
   phụ lục
 
 
+chương 2 làm dài hơn đi ,usecase , kết quả đạt được ,
+
+CHƯƠNG 3: QUY TRÌNH THỰC HIỆN VÀ GIẢI QUYẾT BÀI TOÁN
+  3.1 Khảo sát và Phân tích yêu cầu
+  3.2 Phân tích và Thiết kế hệ thống
+  3.3 Thiết kế cơ sở dữ liệu  <--- Đưa lên trước
+      3.3.1 Sơ đồ thực thể mối quan hệ (ERD)
+      3.3.2 Đặc tả chi tiết các bảng dữ liệu
+  3.4 Thiết kế giao diện hệ thống <--- Đưa lên trước
+      3.4.1 Giao diện phân hệ Khách hàng
+      3.4.2 Giao diện phân hệ Quản trị
+  3.5 Cài đặt và Triển khai hệ thống <--- Đưa xuống sau Thiết kế
+      3.5.1 Môi trường cài đặt và cấu hình (XAMPP, Local, Tech stack)
+      3.5.2 Triển khai cấu trúc CSDL và cơ chế Xác thực
+      3.5.3 Xây dựng Module Trợ lý ảo AI Chatbot
+  3.6 Phương pháp và Kịch bản kiểm thử <--- Cuối cùng

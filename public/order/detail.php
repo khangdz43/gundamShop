@@ -12,10 +12,9 @@ $stmt->execute();
 $order = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-// Nếu không tìm thấy đơn hàng hoặc đơn hàng không thuộc về user này -> Đá văng ra ngoài ngay lập tức
 if (!$order) {
     redirect('orders.php');
-    exit; // Luôn luôn thêm exit sau khi redirect để chặn thực thi code bên dưới
+    exit; 
 }
 
 // 2. Lấy danh sách sản phẩm trong đơn hàng
@@ -25,8 +24,8 @@ $stmt->execute();
 $items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// 3. Check trạng thái đổi trả đơn hàng (Đã sửa đổi: Không cần check user_id ở đây nữa vì order_id đã được bảo vệ ở bước 1)
-$stmt = $conn->prepare("SELECT * FROM order_returns WHERE order_id = ? LIMIT 1");
+// 3. Check trạng thái đổi trả đơn hàng
+$stmt = $conn->prepare("SELECT * FROM order_returns WHERE order_id = ? ORDER BY created_at DESC LIMIT 1");
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $returnRequest = $stmt->get_result()->fetch_assoc();
@@ -82,7 +81,25 @@ include __DIR__ . '/../../includes/header.php';
 
         <div class="card">
             <h2 style="margin-top:0"><?php echo __('order_info'); ?></h2>
-            <p><strong><?php echo __('status'); ?>:</strong> <span class="status-badge <?php echo getOrderStatusClass($order['status']); ?>"><?php echo getOrderStatusLabel($order['status']); ?></span></p>
+            
+            <p><strong><?php echo __('status'); ?>:</strong>
+                <?php if (!empty($returnRequest)): ?>
+                    <!-- Hệ thống kiểm soát luồng hiển thị dựa theo tiến độ thực tế của yêu cầu đổi trả -->
+                    <?php if ($returnRequest['status'] === 'pending'): ?>
+                        <span class="status-badge status-pending"><?php echo __('return_request'); ?> (<?php echo __('return_processing'); ?>)</span>
+                        <br><small style="color:var(--text-muted);"><?php echo __('status'); ?> gốc: <?php echo getOrderStatusLabel($order['status']); ?></small>
+                    <?php elseif ($returnRequest['status'] === 'approved'): ?>
+                        <span class="status-badge status-success" style="background:#27ae60; color:white;"><?php echo __('return_approved'); ?></span>
+                    <?php else: ?>
+                        <span class="status-badge status-danger" style="background:#c0392b; color:white;"><?php echo __('return_rejected'); ?></span>
+                        <br><small style="color:var(--text-muted);"><?php echo __('status'); ?> hiện tại: <?php echo getOrderStatusLabel($order['status']); ?></small>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <!-- Trạng thái mặc định khi không xảy ra tranh chấp đổi trả -->
+                    <span class="status-badge <?php echo getOrderStatusClass($order['status']); ?>"><?php echo getOrderStatusLabel($order['status']); ?></span>
+                <?php endif; ?>
+            </p>
+
             <p><strong><?php echo __('order_date_label'); ?>:</strong> <?php echo date('d/m/Y H:i', strtotime($order['created_at'])); ?></p>
             <p><strong><?php echo __('order_recipient'); ?>:</strong> <?php echo htmlspecialchars($order['full_name']); ?></p>
             <p><strong><?php echo __('phone'); ?>:</strong> <?php echo htmlspecialchars($order['phone']); ?></p>
@@ -94,6 +111,7 @@ include __DIR__ . '/../../includes/header.php';
             <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span><?php echo __('ship_fee'); ?></span><span><?php echo formatPrice($order['shipping_fee']); ?></span></div>
             <div style="display:flex;justify-content:space-between;font-size:1.2rem;font-weight:bold"><span><?php echo __('order_total'); ?></span><span style="color:var(--primary-blue)"><?php echo formatPrice($order['total']); ?></span></div>
             
+            <!-- Khối thông tin/nút hành động xử lý đổi trả của User -->
             <?php if ($returnRequest): ?>
                 <div style="margin-top:20px; padding:15px; background:rgba(255,255,255,0.05); border-radius:8px; border:1px solid #444; text-align: left;">
                     <h3 style="margin-top:0; color:#ffc107; font-size:1.05rem;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></h3>
@@ -112,7 +130,7 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endif; ?>
                 </div>
             <?php elseif ($order['status'] === 'completed'): ?>
-                <a href="return_request.php?order_id=<?php echo (int)$order['id']; ?>" class="btn btn-blue" style="width:100%; margin-top:20px; background:#e10600; justify-content: center;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></a>
+                <a href="<?php echo getAppBasePath(); ?>return_request.php?order_id=<?php echo (int)$order['id']; ?>" class="btn btn-blue" style="width:100%; margin-top:20px; background:#e10600; justify-content: center;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></a>
             <?php endif; ?>
             
             <?php if (in_array($order['status'], ['pending', 'processing'], true)): ?>
@@ -122,7 +140,7 @@ include __DIR__ . '/../../includes/header.php';
             </button>
             <?php endif; ?>
             
-            <a href="orders.php" class="btn btn-gray" style="width:100%;margin-top:10px; justify-content: center;"><i class="fas fa-arrow-left"></i> <?php echo __('back_to_orders'); ?></a>
+            <a href="<?php echo getAppBasePath(); ?>orders.php" class="btn btn-gray" style="width:100%;margin-top:10px; justify-content: center;"><i class="fas fa-arrow-left"></i> <?php echo __('back_to_orders'); ?></a>
         </div>
     </div>
 </div>

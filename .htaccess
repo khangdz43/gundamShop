@@ -29,6 +29,7 @@
     RewriteRule ^orders(?:\.php)?$ public/order/history.php [L,QSA]
     RewriteRule ^order_detail(?:\.php)?$ public/order/detail.php [L,QSA]
     RewriteRule ^order_detail/([^/]+)/?$ public/order/detail.php?id=$1 [L,QSA]
+    RewriteRule ^return_request(?:\.php)?$ public/order/return.php [L,QSA]
     RewriteRule ^orders(?:/.*)?$ public/order/history.php [L,QSA]
     RewriteRule ^order_success(?:\.php)?$ public/order/success.php [L,QSA]
     RewriteRule ^order/([^/]+)/?$ public/order/detail.php?id=$1 [L,QSA]

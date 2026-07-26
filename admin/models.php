@@ -804,6 +804,9 @@ if (isset($_GET['message'])) {
                 <i class="fas fa-list"></i> Danh sách Models
             </h2>
             <div class="admin-actions">
+                <a href="categories.php" class="btn-admin btn-secondary">
+                    <i class="fas fa-tags"></i> Quản lý danh mục
+                </a>
                 <a href="add_model.php" class="btn-admin btn-primary">
                     <i class="fas fa-plus"></i> Thêm Model mới
                 </a>

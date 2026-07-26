@@ -28,8 +28,6 @@ $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __
                 <img class="logo" src="<?php echo $adminBasePath; ?>assets/images/LOGO.jpg" alt="Gundam Store" width="90">
             </a>
             <ul class="nav-menu admin-site-menu" id="navMenu">
-                <li><a href="<?php echo $adminBasePath; ?>index.php"><i class="fas fa-home"></i> <?php echo __('home'); ?></a></li>
-                <li><a href="<?php echo $adminBasePath; ?>products"><i class="fas fa-box"></i> <?php echo __('products'); ?></a></li>
             </ul>
         </nav>
 
@@ -50,6 +48,9 @@ $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __
             <?php if (hasPermission('products')): ?>
             <a href="<?php echo $adminBasePath; ?>admin/models.php" class="btn-header<?php echo in_array($currentAdminPage, ['models.php','add_model.php','edit_model.php']) ? ' active' : ''; ?>">
                 <i class="fas fa-robot"></i> <?php echo __('products'); ?>
+            </a>
+            <a href="<?php echo $adminBasePath; ?>admin/categories.php" class="btn-header<?php echo in_array($currentAdminPage, ['categories.php']) ? ' active' : ''; ?>">
+                <i class="fas fa-tags"></i> Danh mục
             </a>
             <?php endif; ?>
 

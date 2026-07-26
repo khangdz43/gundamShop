@@ -2153,12 +2153,14 @@ html.light-theme .btn-header:hover {
     min-height: 86px;
     padding: 10px 16px;
     gap: 22px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .admin-nav-main {
     gap: 28px;
     min-width: 0;
+    flex: 1 1 auto;
 }
 
 .admin-logo-link {
@@ -2175,7 +2177,9 @@ html.light-theme .btn-header:hover {
 
 .admin-site-menu {
     gap: 16px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    overflow-x: auto;
+    max-width: 100%;
 }
 
 .admin-site-menu a {
@@ -2193,7 +2197,9 @@ html.light-theme .btn-header:hover {
 .admin-header-actions {
     margin-left: auto;
     gap: 12px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    overflow-x: auto;
+    max-width: 100%;
 }
 
 .admin-header-actions .theme-toggle {
@@ -2298,9 +2304,33 @@ html.light-theme .cancel-modal-title {
         flex-wrap: wrap;
     }
 
+    .admin-nav-main {
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .admin-site-menu {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 10px;
+        flex-wrap: wrap;
+        overflow-x: auto;
+    }
+
     .admin-header-actions {
         width: 100%;
         justify-content: flex-end;
         flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 980px) {
+    .admin-site-menu {
+        justify-content: center;
+    }
+
+    .admin-header-actions {
+        justify-content: center;
     }
 }

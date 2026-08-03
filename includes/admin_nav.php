@@ -10,16 +10,16 @@ if (!function_exists('adminNavActive')) {
 }
 
 $posLabels = [
-    'admin'          => __('role_admin'),
-    'order_manager'  => __('role_order_manager'),
-    'product_manager'=> __('role_product_manager'),
-    'staff'          => __('role_staff'),
+    'admin'           => __('role_admin'),
+    'order_manager'   => __('role_order_manager'),
+    'product_manager' => __('role_product_manager'),
+    'staff'           => __('role_staff'),
 ];
 $pos = $_SESSION['position'] ?? null;
 $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __('role_admin') : __('role_staff'));
 ?>
-<header class="site-header admin-navbar">
-    <div class="header-container admin-header-container">
+<header class="site-header admin-navbar" style="overflow: visible !important;">
+    <div class="header-container admin-header-container" style="overflow: visible !important;">
         <nav class="nav-main admin-nav-main">
             <button type="button" class="nav-toggle" id="navToggle" aria-label="Menu">
                 <i class="fas fa-bars"></i>
@@ -31,7 +31,7 @@ $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __
             </ul>
         </nav>
 
-        <div class="header-actions admin-header-actions">
+        <div class="header-actions admin-header-actions" style="overflow: visible !important;">
             <button type="button" class="theme-toggle" title="<?php echo __('theme_toggle'); ?>" aria-label="<?php echo __('theme_toggle'); ?>">
                 <i class="fas fa-sun"></i>
             </button>
@@ -91,19 +91,17 @@ $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __
             </a>
             <?php endif; ?>
 
+            <!-- EXPORT EXCEL DROPDOWN -->
             <?php if (hasPermission('orders') || isAdmin()): ?>
-            <div style="position:relative;display:inline-block;" id="exportDropdownContainer">
-                <button type="button" class="btn-header" onclick="toggleExportMenu()" title="<?php echo __('export_data'); ?>"
-                        style="gap:4px;">
+            <div class="export-dropdown-wrapper">
+                <button type="button" class="btn-header" id="exportBtnToggle" style="gap:5px;">
                     <i class="fas fa-file-excel"></i> <i class="fas fa-chevron-down" style="font-size:0.65rem;"></i>
                 </button>
-                <div id="exportDropdownMenu" style="display:none;position:absolute;right:0;top:120%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;box-shadow:var(--shadow-main);z-index:1000;min-width:180px;overflow:hidden;">
+                <div class="export-dropdown-content" id="exportMenuBox">
                     <?php if (hasPermission('orders')): ?>
                     <a href="<?php echo $adminBasePath; ?>admin/export_excel.php?type=orders" class="export-menu-item">
                         <i class="fas fa-shopping-bag"></i> <?php echo __('export_orders'); ?>
                     </a>
-                    <?php endif; ?>
-                    <?php if (hasPermission('orders')): ?>
                     <a href="<?php echo $adminBasePath; ?>admin/export_excel.php?type=revenue" class="export-menu-item">
                         <i class="fas fa-chart-line"></i> <?php echo __('export_revenue'); ?>
                     </a>
@@ -117,22 +115,6 @@ $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __
             </div>
             <?php endif; ?>
 
-            <div class="notification-dropdown-container" style="position:relative; display:inline-block;">
-                <button type="button" class="btn-header" id="notificationBell"
-                        style="position:relative; width:42px; height:42px; display:inline-flex; align-items:center; justify-content:center; padding:0; cursor:pointer;">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge" id="notificationBadge"
-                          style="display:none; position:absolute; top:-5px; right:-5px; background:#e10600; color:white; border-radius:50%; width:18px; height:18px; font-size:10px; font-weight:bold; align-items:center; justify-content:center; box-shadow:0 0 5px rgba(255,0,0,0.5);">0</span>
-                </button>
-                <div id="notificationDropdown"
-                     style="display:none; position:absolute; right:0; top:120%; width:320px; max-height:400px; overflow-y:auto; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); box-shadow:var(--shadow-main); z-index:2000; padding:10px 0;">
-                    <div class="notification-dropdown-header" style="padding:10px 15px; border-bottom:1px solid var(--border-color); font-weight:bold; color:var(--text-main); font-family:'Outfit';"><?php echo __('notifications'); ?></div>
-                    <div id="notificationList" style="max-height:300px; overflow-y:auto;">
-                        <div style="padding:15px; text-align:center; color:var(--text-muted);"><?php echo __('loading_notifications'); ?></div>
-                    </div>
-                </div>
-            </div>
-
             <a href="<?php echo $adminBasePath; ?>logout.php" class="btn-header btn-outline admin-logout" title="<?php echo __('logout'); ?>">
                 <i class="fas fa-sign-out-alt"></i>
             </a>
@@ -141,33 +123,71 @@ $displayRole = $posLabels[$pos] ?? ((($_SESSION['role'] ?? '') === 'admin') ? __
 </header>
 
 <style>
+/* Style riêng cho Dropdown Export để chống đè Z-Index */
+.export-dropdown-wrapper {
+    position: relative !important;
+    display: inline-block !important;
+}
+
+.export-dropdown-content {
+    display: none;
+    position: absolute !important;
+    right: 0 !important;
+    top: calc(100% + 5px) !important;
+    background: #1e1e2d; /* Fallback màu tối nếu CSS var chưa load */
+    background: var(--bg-card, #1e1e2d);
+    border: 1px solid var(--border-color, #2b2b40);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 999999 !important;
+    min-width: 190px;
+    padding: 6px 0;
+}
+
+.export-dropdown-content.show {
+    display: block !important;
+}
+
 .export-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    color: var(--text-main);
-    text-decoration: none;
-    font-size: 0.88rem;
-    transition: background 0.15s;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 15px !important;
+    color: var(--text-main, #ffffff) !important;
+    text-decoration: none !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+    transition: background 0.2s;
 }
+
 .export-menu-item:hover {
-    background: rgba(31,95,255,0.1);
-    color: #7da7ff;
+    background: rgba(31, 95, 255, 0.15) !important;
+    color: #7da7ff !important;
 }
-.export-menu-item i { width: 16px; text-align: center; color: #28a745; }
+
+.export-menu-item i {
+    width: 16px;
+    text-align: center;
+    color: #28a745;
+}
 </style>
 
 <script>
-function toggleExportMenu() {
-    var menu = document.getElementById('exportDropdownMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
-document.addEventListener('click', function(e) {
-    var container = document.getElementById('exportDropdownContainer');
-    if (container && !container.contains(e.target)) {
-        var menu = document.getElementById('exportDropdownMenu');
-        if (menu) menu.style.display = 'none';
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('exportBtnToggle');
+    var menu = document.getElementById('exportMenuBox');
+
+    if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
     }
 });
 </script>

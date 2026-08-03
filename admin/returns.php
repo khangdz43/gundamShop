@@ -55,14 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_id'])) {
                 $stmt->close();
             }
 
-            // Send notification to the user (Đã sửa: Đổi sang thông báo hiển thị mã đơn hàng cụ thể)
+            // Send notification to the user via helper so schema matches notifications + notification_users
             $notifTitle = "Cập nhật yêu cầu đổi trả";
             $notifMsg = "Yêu cầu đổi trả cho đơn hàng #" . $returnReq['order_code'] . " đã được " . ($newStatus === 'approved' ? 'chấp nhận' : 'từ chối') . ". Phản hồi: " . $adminComment;
-            
-            $stmt = $conn->prepare("INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)");
-            $stmt->bind_param("iss", $returnReq['order_user_id'], $notifTitle, $notifMsg);
-            $stmt->execute();
-            $stmt->close();
+
+            sendUserNotification($conn, $returnReq['order_user_id'], $notifTitle, $notifMsg, 'order_return');
 
             $conn->commit();
             $message = "Cập nhật yêu cầu đổi trả thành công!";

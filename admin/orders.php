@@ -24,12 +24,47 @@ $toYear    = $_GET['to_year'] ?? '';
 $fromDate = '';
 $toDate   = '';
 
-// Logic hợp nhất dữ liệu (Data Consolidation): Chỉ kích hoạt bộ lọc nếu chọn đủ cả Ngày, Tháng, Năm
-if ($fromDay !== '' && $fromMonth !== '' && $fromYear !== '') {
-    $fromDate = sprintf('%04d-%02d-%02d', $fromYear, $fromMonth, $fromDay);
+// Logic hợp nhất dữ liệu (Data Consolidation): Cho phép lọc ngày theo năm và tháng mà không cần chọn đủ cả 3 thành phần
+$fromYearInt  = (int)$fromYear;
+$fromMonthInt = (int)$fromMonth;
+$fromDayInt   = (int)$fromDay;
+
+if ($fromYear !== '') {
+    $fromMonthInt = $fromMonthInt ?: 1;
+    if ($fromMonthInt < 1) {
+        $fromMonthInt = 1;
+    } elseif ($fromMonthInt > 12) {
+        $fromMonthInt = 12;
+    }
+    $fromDayInt = $fromDayInt ?: 1;
+    $maxFromDay = cal_days_in_month(CAL_GREGORIAN, $fromMonthInt, $fromYearInt);
+    if ($fromDayInt < 1) {
+        $fromDayInt = 1;
+    } elseif ($fromDayInt > $maxFromDay) {
+        $fromDayInt = $maxFromDay;
+    }
+    $fromDate = sprintf('%04d-%02d-%02d', $fromYearInt, $fromMonthInt, $fromDayInt);
 }
-if ($toDay !== '' && $toMonth !== '' && $toYear !== '') {
-    $toDate = sprintf('%04d-%02d-%02d', $toYear, $toMonth, $toDay);
+
+$toYearInt  = (int)$toYear;
+$toMonthInt = (int)$toMonth;
+$toDayInt   = (int)$toDay;
+
+if ($toYear !== '') {
+    $toMonthInt = $toMonthInt ?: 12;
+    if ($toMonthInt < 1) {
+        $toMonthInt = 1;
+    } elseif ($toMonthInt > 12) {
+        $toMonthInt = 12;
+    }
+    $maxToDay = cal_days_in_month(CAL_GREGORIAN, $toMonthInt, $toYearInt);
+    $toDayInt = $toDayInt ?: $maxToDay;
+    if ($toDayInt < 1) {
+        $toDayInt = 1;
+    } elseif ($toDayInt > $maxToDay) {
+        $toDayInt = $maxToDay;
+    }
+    $toDate = sprintf('%04d-%02d-%02d', $toYearInt, $toMonthInt, $toDayInt);
 }
 
 // Hàm tạo URL giữ nguyên các tham số lọc hiện tại

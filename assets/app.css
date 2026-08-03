@@ -489,7 +489,7 @@ html.light-theme .btn-header.btn-user {
     border-radius: var(--radius-md);
     min-width: 200px;
     box-shadow: var(--shadow-main);
-    z-index: 100;
+    z-index: 99999;
     padding: 8px 0;
     opacity: 0;
     visibility: hidden;

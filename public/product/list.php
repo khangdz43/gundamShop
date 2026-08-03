@@ -1,5 +1,4 @@
 <?php
-session_start();
 include __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/auth.php';
 
@@ -248,7 +247,7 @@ include __DIR__ . '/../../includes/header.php';
                 $formatted_old_price = $row['old_price'] ? number_format($row['old_price'], 0, ',', '.') . ' ₫' : '';
                 $is_sale             = $row['is_sale'] && $row['old_price'];
                 $discount            = $is_sale ? round(100 - ($row['price'] / $row['old_price'] * 100)) : 0;
-                $image_path          = "assets/images/" . $row['image'];
+                $image_path          = __DIR__ . '/../../assets/images/' . $row['image'];
                 $use_image           = (!empty($row['image']) && file_exists($image_path)) ? $row['image'] : 'LOGO.jpg';
             ?>
             <div class="product-card <?php echo $is_sale ? 'sale' : ''; ?>">

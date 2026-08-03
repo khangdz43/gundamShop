@@ -24,7 +24,7 @@ if (!$order) {
 
 if ($order['status'] !== 'completed') {
     setFlash('order', 'Bạn chỉ có thể yêu cầu đổi trả cho đơn hàng đã giao thành công.', 'error');
-    redirect('order_detail.php?id=' . $orderId);
+    redirect('detail.php?id=' . $orderId);
     exit;
 }
 
@@ -37,7 +37,7 @@ $stmt->close();
 
 if ($existingReturn) {
     setFlash('order', 'Yêu cầu đổi trả cho đơn hàng này đã được gửi trước đó.', 'warning');
-    redirect('order_detail.php?id=' . $orderId);
+    redirect('detail.php?id=' . $orderId);
     exit;
 }
 
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             sendUserNotification($conn, null, $title, $messageText, 'system');
 
             setFlash('order', 'Gửi yêu cầu đổi trả thành công. Chúng tôi sẽ duyệt trong thời gian sớm nhất.');
-            redirect('order_detail.php?id=' . $orderId);
+            redirect('detail.php?id=' . $orderId);
             exit;
         } else {
             $message = "Có lỗi xảy ra, vui lòng thử lại sau.";
@@ -112,7 +112,7 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div style="display:flex; gap:15px; margin-top:20px;">
-                <a href="<?php echo getAppBasePath(); ?>order_detail.php?id=<?php echo (int)$orderId; ?>" class="btn btn-gray" style="flex:1; text-align:center;">Hủy bỏ</a>
+                <a href="<?php echo getAppBasePath(); ?>detail.php?id=<?php echo (int)$orderId; ?>" class="btn btn-gray" style="flex:1; text-align:center;">Hủy bỏ</a>
                 <button type="submit" class="btn btn-blue" style="flex:2;"><i class="fas fa-paper-plane"></i> Gửi yêu cầu</button>
             </div>
         </form>

@@ -41,25 +41,52 @@ if ($statusFilter !== 'all' && $statusFilter !== '') {
 $startDate = null;
 $endDate = null;
 
-if ($startDay && $startMonth && $startYear) {
-    // Đảm bảo tạo ra chuỗi định dạng YYYY-MM-DD hợp lệ
-    $startDateStr = sprintf('%04d-%02d-%02d', $startYear, $startMonth, $startDay);
-    if (strtotime($startDateStr)) {
-        $whereClauses[] = "DATE(o.created_at) >= ?";
-        $params[] = $startDateStr;
-        $paramTypes .= "s";
-        $startDate = $startDateStr;
+$startYearInt  = (int)$startYear;
+$startMonthInt = (int)$startMonth;
+$startDayInt   = (int)$startDay;
+if ($startYear !== '') {
+    $startMonthInt = $startMonthInt ?: 1;
+    if ($startMonthInt < 1) {
+        $startMonthInt = 1;
+    } elseif ($startMonthInt > 12) {
+        $startMonthInt = 12;
     }
+    $startDayInt = $startDayInt ?: 1;
+    $maxStartDay = cal_days_in_month(CAL_GREGORIAN, $startMonthInt, $startYearInt);
+    if ($startDayInt < 1) {
+        $startDayInt = 1;
+    } elseif ($startDayInt > $maxStartDay) {
+        $startDayInt = $maxStartDay;
+    }
+    $startDateStr = sprintf('%04d-%02d-%02d', $startYearInt, $startMonthInt, $startDayInt);
+    $whereClauses[] = "DATE(o.created_at) >= ?";
+    $params[] = $startDateStr;
+    $paramTypes .= "s";
+    $startDate = $startDateStr;
 }
 
-if ($endDay && $endMonth && $endYear) {
-    $endDateStr = sprintf('%04d-%02d-%02d', $endYear, $endMonth, $endDay);
-    if (strtotime($endDateStr)) {
-        $whereClauses[] = "DATE(o.created_at) <= ?";
-        $params[] = $endDateStr;
-        $paramTypes .= "s";
-        $endDate = $endDateStr;
+$endYearInt  = (int)$endYear;
+$endMonthInt = (int)$endMonth;
+$endDayInt   = (int)$endDay;
+if ($endYear !== '') {
+    $endMonthInt = $endMonthInt ?: 12;
+    if ($endMonthInt < 1) {
+        $endMonthInt = 1;
+    } elseif ($endMonthInt > 12) {
+        $endMonthInt = 12;
     }
+    $maxEndDay = cal_days_in_month(CAL_GREGORIAN, $endMonthInt, $endYearInt);
+    $endDayInt = $endDayInt ?: $maxEndDay;
+    if ($endDayInt < 1) {
+        $endDayInt = 1;
+    } elseif ($endDayInt > $maxEndDay) {
+        $endDayInt = $maxEndDay;
+    }
+    $endDateStr = sprintf('%04d-%02d-%02d', $endYearInt, $endMonthInt, $endDayInt);
+    $whereClauses[] = "DATE(o.created_at) <= ?";
+    $params[] = $endDateStr;
+    $paramTypes .= "s";
+    $endDate = $endDateStr;
 }
 
 $whereSql = empty($whereClauses) ? '' : ' WHERE ' . implode(' AND ', $whereClauses);

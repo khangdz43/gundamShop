@@ -4,6 +4,25 @@ requirePermission('products');
 
 $basePath = '../';
 
+// Filter parameters
+$search = trim($_GET['search'] ?? '');
+$categoryFilter = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$statusFilter = $_GET['status'] ?? 'all';
+$allowedStatuses = ['all', 'sale', 'featured', 'out_of_stock', 'in_stock'];
+if (!in_array($statusFilter, $allowedStatuses, true)) {
+    $statusFilter = 'all';
+}
+
+// Load categories for filter dropdown
+$categories = [];
+$catResult = mysqli_query($conn, "SELECT id, name FROM categories ORDER BY name ASC");
+if ($catResult) {
+    while ($cat = mysqli_fetch_assoc($catResult)) {
+        $categories[] = $cat;
+    }
+    mysqli_free_result($catResult);
+}
+
 // Xử lý xóa sản phẩm
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
@@ -36,8 +55,30 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Lấy danh sách sản phẩm (JOIN với categories để lấy tên danh mục)
-$sql = "SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.id ASC";
+// Lấy danh sách sản phẩm theo bộ lọc (JOIN với categories để lấy tên danh mục)
+$whereClauses = [];
+if ($categoryFilter > 0) {
+    $whereClauses[] = "p.category_id = " . $categoryFilter;
+}
+if ($statusFilter === 'sale') {
+    $whereClauses[] = "p.is_sale = 1 AND p.old_price IS NOT NULL";
+} elseif ($statusFilter === 'featured') {
+    $whereClauses[] = "p.is_featured = 1";
+} elseif ($statusFilter === 'out_of_stock') {
+    $whereClauses[] = "p.stock = 0";
+} elseif ($statusFilter === 'in_stock') {
+    $whereClauses[] = "p.stock > 0";
+}
+if ($search !== '') {
+    $escapedSearch = mysqli_real_escape_string($conn, $search);
+    $whereClauses[] = "(p.name LIKE '%$escapedSearch%' OR p.grade LIKE '%$escapedSearch%' OR c.name LIKE '%$escapedSearch%')";
+}
+$whereSql = '';
+if (!empty($whereClauses)) {
+    $whereSql = 'WHERE ' . implode(' AND ', $whereClauses);
+}
+
+$sql = "SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id $whereSql ORDER BY p.id ASC";
 $result = mysqli_query($conn, $sql);
 
 // Kiểm tra thông báo từ URL
@@ -799,11 +840,36 @@ if (isset($_GET['message'])) {
         </div>
         
         <!-- Header với nút hành động -->
-        <div class="admin-header">
-            <h2 style="color: white; font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-list"></i> Danh sách Models
-            </h2>
-            <div class="admin-actions">
+        <div class="admin-header" style="flex-wrap: wrap; gap: 20px;">
+            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+                <h2 style="color: white; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin: 0;">
+                    <i class="fas fa-list"></i> Danh sách Models
+                </h2>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <form method="GET" action="models.php" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                        <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Tìm kiếm tên, loại hoặc danh mục..." style="padding:10px 14px; border-radius:10px; border:1px solid #333; background:#111; color:#f5f5f5; min-width:240px;">
+                        <select name="category_id" style="padding:10px 14px; border-radius:10px; border:1px solid #333; background:#111; color:#f5f5f5; min-width:180px;">
+                            <option value="0">Tất cả danh mục</option>
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo $cat['id']; ?>" <?php echo $categoryFilter === (int)$cat['id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat['name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select name="status" style="padding:10px 14px; border-radius:10px; border:1px solid #333; background:#111; color:#f5f5f5; min-width:180px;">
+                            <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>Tất cả trạng thái</option>
+                            <option value="sale" <?php echo $statusFilter === 'sale' ? 'selected' : ''; ?>>Đang sale</option>
+                            <option value="featured" <?php echo $statusFilter === 'featured' ? 'selected' : ''; ?>>Nổi bật</option>
+                            <option value="out_of_stock" <?php echo $statusFilter === 'out_of_stock' ? 'selected' : ''; ?>>Hết hàng</option>
+                            <option value="in_stock" <?php echo $statusFilter === 'in_stock' ? 'selected' : ''; ?>>Còn hàng</option>
+                        </select>
+                        <button type="submit" class="btn-admin btn-primary" style="padding:10px 18px;">Lọc</button>
+                        <?php if ($search !== '' || $categoryFilter > 0 || $statusFilter !== 'all'): ?>
+                            <a href="models.php" class="btn-admin btn-secondary" style="padding:10px 18px;">Xóa lọc</a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+                <div class="admin-actions">
                 <a href="categories.php" class="btn-admin btn-secondary">
                     <i class="fas fa-tags"></i> Quản lý danh mục
                 </a>
@@ -945,7 +1011,7 @@ if (isset($_GET['message'])) {
 <!-- FOOTER -->
 <footer class="footer">
     <div class="footer_text">
-        <p>Gundam Store HUMG © 2025 - All Rights Reserved</p>
+        <p>Gundam Store HUMG © 2025 - Mac Quang Minh</p>
         <p style="margin-top: 10px; font-size: 12px; color: #888;">
             Địa chỉ: Trường Đại học Mỏ - Địa chất | Hotline: 0969 946 335 | Email: gundamstore@humg.vn
         </p>

@@ -464,6 +464,53 @@ function initNotifications() {
     }, 30000);
 }
 
+function initAdminExportMenu() {
+    const toggle = document.getElementById('exportMenuToggle');
+    const menu = document.getElementById('exportDropdownMenu');
+    const container = document.getElementById('exportDropdownContainer');
+    if (!toggle || !menu || !container) return;
+
+    function positionMenu() {
+        const rect = toggle.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.top = `${rect.bottom + 8}px`;
+        menu.style.left = `${Math.max(8, rect.right - menu.offsetWidth)}px`;
+    }
+
+    function openMenu() {
+        positionMenu();
+        menu.style.display = 'block';
+    }
+
+    function closeMenu() {
+        menu.style.display = 'none';
+    }
+
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (menu.style.display === 'block') {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!container.contains(e.target) && !menu.contains(e.target)) {
+            closeMenu();
+        }
+    });
+
+    window.toggleExportMenu = function() {
+        if (!menu) return;
+        if (menu.style.display === 'block') {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
     initMobileNav();
@@ -472,4 +519,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initThemeToggle();
     initLangSwitcher();
     initNotifications();
+    initAdminExportMenu();
 });

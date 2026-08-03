@@ -26,9 +26,64 @@ function redirect($url) {
     }
 
     $baseUrl = function_exists('getAppBaseUrl') ? getAppBaseUrl() : '';
-    $normalizedPath = '/' . ltrim($url, '/');
-    $target = $baseUrl !== '' ? rtrim($baseUrl, '/') . $normalizedPath : $normalizedPath;
+    $basePath = function_exists('getAppBasePath') ? rtrim(getAppBasePath(), '/') : '';
+    $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '/');
+    $scriptDir = dirname($scriptName);
+    $scriptDir = '/' . trim($scriptDir, '/');
 
+    $rootLevelPrefixes = ['admin/', 'api/', 'assets/', 'config/', 'includes/'];
+    $resolveFromAppRoot = false;
+    if ($url[0] !== '/') {
+        foreach ($rootLevelPrefixes as $prefix) {
+            if (strpos($url, $prefix) === 0) {
+                $resolveFromAppRoot = true;
+                break;
+            }
+        }
+    }
+
+    if ($url[0] === '/') {
+        $candidate = $url;
+    } else {
+        if ($resolveFromAppRoot) {
+            $publicPos = strpos($scriptDir, '/public');
+            if ($publicPos !== false) {
+                $appRootDir = substr($scriptDir, 0, $publicPos);
+                $scriptDir = $appRootDir === '' ? '/' : $appRootDir;
+            }
+        }
+
+        $candidate = $scriptDir . '/' . $url;
+    }
+
+    $segments = [];
+    foreach (explode('/', trim($candidate, '/')) as $segment) {
+        if ($segment === '' || $segment === '.') {
+            continue;
+        }
+        if ($segment === '..') {
+            if (!empty($segments)) {
+                array_pop($segments);
+            }
+            continue;
+        }
+        $segments[] = $segment;
+    }
+
+    $normalizedPath = '/' . implode('/', $segments);
+
+    if ($basePath !== '' && $basePath !== '/' && strpos($normalizedPath, $basePath . '/') === 0) {
+        $normalizedPath = substr($normalizedPath, strlen($basePath));
+        if ($normalizedPath === '') {
+            $normalizedPath = '/';
+        }
+    }
+
+    if ($normalizedPath === '' || $normalizedPath === '/') {
+        $normalizedPath = '/';
+    }
+
+    $target = $baseUrl !== '' ? rtrim($baseUrl, '/') . $normalizedPath : $normalizedPath;
     header("Location: $target");
     exit();
 }

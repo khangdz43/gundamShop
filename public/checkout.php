@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->close();
 
             $conn->commit();
-            redirect('order_success?code=' . urlencode($orderCode));
+            redirect('order_success.php?code=' . urlencode($orderCode));
         } catch (Exception $e) {
             $conn->rollback();
             $errors[] = sprintf(__('order_failed'), $e->getMessage());

@@ -87,16 +87,16 @@ include '../includes/header.php';
         <table class="data-table" style="font-size:0.82rem;">
             <thead>
                 <tr>
-                    <th>Chức vụ</th><th>Dashboard</th><th>Sản phẩm</th><th>Đơn hàng</th><th>Đổi trả</th><th>QL Users</th><th>Gửi TB</th><th>AI</th>
+                    <th>Chức vụ</th><th>Dashboard</th><th>Sản phẩm</th><th>Đơn hàng</th><th>Đổi trả</th><th>QL Users</th><th>Gửi TB</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
                 $permTable = [
-                    ['Quản trị viên (admin)',        '✅','✅','✅','✅','✅','✅'],
-                    ['QL Đơn hàng (order_manager)', '✅','❌','✅','❌','❌','❌'],
-                    ['QL Sản phẩm (product_manager)','✅','✅','❌','❌','❌','❌'],
-                    ['Nhân viên (staff)',           '✅','❌','❌','❌','✅','❌'],
+                    ['Quản trị viên (admin)',        'YES','YES','YES','YES','YES','YES'],
+                    ['QL Đơn hàng (order_manager)', 'YES','NO','YES','NO','NO','NO'],
+                    ['QL Sản phẩm (product_manager)','YES','YES','NO','NO','NO','NO'],
+                    ['Nhân viên (staff)',           'YES','NO','NO','NO','YES','NO'],
                 ];
                 foreach ($permTable as $row):
                     $cols = array_slice($row, 1);

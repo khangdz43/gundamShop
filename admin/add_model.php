@@ -579,7 +579,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!-- FOOTER -->
 <footer class="footer">
     <div class="footer_text">
-        <p>Gundam Store HUMG © 2025 - All Rights Reserved</p>
+        <p>Gundam Store HUMG © 2025 - Mac Quang Minh</p>
         <p style="margin-top: 10px; font-size: 12px; color: #888;">
             Địa chỉ: Trường Đại học Mỏ - Địa chất | Hotline: 0969 946 335 | Email: gundamstore@humg.vn
         </p>

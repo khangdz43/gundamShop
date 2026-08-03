@@ -88,7 +88,8 @@ include __DIR__ . '/../includes/header.php';
             
             foreach($category_data as $type => $category):
                 $count = $counts[$type] ?? 0;
-                $image = file_exists($category['image']) ? $category['image'] : "assets/images/LOGO.jpg";
+                $categoryImage = __DIR__ . '/../' . $category['image'];
+                $image = file_exists($categoryImage) ? getAppBasePath() . $category['image'] : getAppBasePath() . 'assets/images/LOGO.jpg';
             ?>
             <div class="category-card" onclick="window.location.href='products.php?type=<?= $type ?>'">
                 <img src="<?= $image ?>" alt="<?= $type ?>" class="category-img" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
@@ -126,7 +127,7 @@ include __DIR__ . '/../includes/header.php';
                 <span class="product-badge">-<?= $discount ?>%</span>
                 <div class="product-image-container">
                     <a href="products_detail.php?id=<?= $row['id'] ?>" style="display:contents">
-                        <img src="assets/images/<?= htmlspecialchars($row['image']) ?>" alt="<?= htmlspecialchars($row['name']) ?>" class="product-image" onerror="this.src='assets/images/LOGO.jpg'">
+                        <img src="<?php echo getAppBasePath(); ?>assets/images/<?= htmlspecialchars($row['image']) ?>" alt="<?= htmlspecialchars($row['name']) ?>" class="product-image" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
                     </a>
                 </div>
                 <div class="product-info">
@@ -188,7 +189,7 @@ include __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
                 <div class="product-image-container">
                     <a href="products_detail.php?id=<?= $row['id'] ?>" style="display:contents">
-                        <img src="assets/images/<?= htmlspecialchars($row['image']) ?>" alt="<?= htmlspecialchars($row['name']) ?>" class="product-image" onerror="this.src='assets/images/LOGO.jpg'">
+                        <img src="<?php echo getAppBasePath(); ?>assets/images/<?= htmlspecialchars($row['image']) ?>" alt="<?= htmlspecialchars($row['name']) ?>" class="product-image" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
                     </a>
                 </div>
                 <div class="product-info">

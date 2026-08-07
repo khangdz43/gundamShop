@@ -22,8 +22,23 @@ if (!$order) {
     exit;
 }
 
+$completedAt = $order['updated_at'] ?? $order['created_at'] ?? null;
+$daysSinceCompleted = 0;
+if ($order['status'] === 'completed' && $completedAt) {
+    $completedTimestamp = strtotime($completedAt);
+    if ($completedTimestamp) {
+        $daysSinceCompleted = (int) floor((time() - $completedTimestamp) / 86400);
+    }
+}
+
 if ($order['status'] !== 'completed') {
     setFlash('order', 'Bạn chỉ có thể yêu cầu đổi trả cho đơn hàng đã giao thành công.', 'error');
+    redirect('detail.php?id=' . $orderId);
+    exit;
+}
+
+if ($daysSinceCompleted >= 5) {
+    setFlash('order', 'Đơn hàng này đã quá 5 ngày kể từ khi hoàn thành nên không còn được đổi trả.', 'error');
     redirect('detail.php?id=' . $orderId);
     exit;
 }
@@ -91,6 +106,9 @@ include __DIR__ . '/../../includes/header.php';
 
     <div class="card">
         <h2 style="margin-top:0"><i class="fas fa-undo"></i> Chi tiết đơn hàng đổi trả</h2>
+        <div class="alert alert-info" style="margin-bottom:16px; font-size:0.95rem;">
+            <strong>Quy định đổi trả:</strong> Nếu đơn hàng đã giao thành công và sản phẩm có vấn đề từ nhà sản xuất, sai mẫu mã, hoặc hư hỏng trong quá trình vận chuyển, khách hàng có thể gửi yêu cầu đổi trả. Vui lòng mô tả rõ lý do và sản phẩm cần đổi trả trong phần bên dưới.
+        </div>
         <div style="margin-bottom:20px;">
             <?php foreach ($items as $item): ?>
             <div style="display:flex;gap:16px;padding:12px 0;border-bottom:1px solid var(--border-color)">

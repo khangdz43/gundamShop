@@ -31,6 +31,8 @@ $stmt->execute();
 $returnRequest = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
+$canRequestReturn = $order['status'] === 'completed';
+
 $flash = getFlash('order');
 $pageTitle = __('order_detail_title') . ' - Gundam Store';
 include __DIR__ . '/../../includes/header.php';
@@ -130,7 +132,9 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endif; ?>
                 </div>
             <?php elseif ($order['status'] === 'completed'): ?>
-                <a href="<?php echo getAppBasePath(); ?>return_request.php?order_id=<?php echo (int)$order['id']; ?>" class="btn btn-blue" style="width:100%; margin-top:20px; background:#e10600; justify-content: center;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></a>
+                <?php if ($canRequestReturn): ?>
+                    <a href="<?php echo getAppBasePath(); ?>public/order/return.php?order_id=<?php echo (int)$order['id']; ?>" class="btn btn-blue" style="width:100%; margin-top:20px; background:#e10600; justify-content: center;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></a>
+                <?php endif; ?>
             <?php endif; ?>
             
             <?php if (in_array($order['status'], ['pending', 'processing'], true)): ?>

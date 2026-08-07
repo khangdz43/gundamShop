@@ -127,23 +127,45 @@ $stats['users'] = $r->fetch_assoc()['c'];
 
 $reviewStats = getAverageReviewRating($conn);
 
-// 4. Kết quả danh sách đơn hàng lọc (Tối đa 20 dòng)
-$recentOrdersSql = "
-    SELECT o.*, u.username 
-    FROM orders o 
-    LEFT JOIN users u ON o.user_id = u.id 
-    " . $whereSql . " 
-    ORDER BY o.created_at DESC 
-    LIMIT 20
+// 4. Dữ liệu tăng trưởng theo tháng cho biểu đồ đường
+$growthSql = "
+    SELECT 
+        DATE_FORMAT(o.created_at, '%Y-%m') as month_key,
+        COUNT(*) as order_count,
+        SUM(CASE WHEN o.status != 'cancelled' THEN o.total ELSE 0 END) as revenue
+    FROM orders o
+    LEFT JOIN users u ON o.user_id = u.id
+" . $whereSql . "
+    GROUP BY YEAR(o.created_at), MONTH(o.created_at)
+    ORDER BY YEAR(o.created_at), MONTH(o.created_at)
 ";
 
-$stmtRecent = $conn->prepare($recentOrdersSql);
+$stmtGrowth = $conn->prepare($growthSql);
 if (!empty($paramTypes)) {
-    $stmtRecent->bind_param($paramTypes, ...$params);
+    $stmtGrowth->bind_param($paramTypes, ...$params);
 }
-$stmtRecent->execute();
-$recentOrdersResult = $stmtRecent->get_result();
-$recentOrders = $recentOrdersResult ? $recentOrdersResult->fetch_all(MYSQLI_ASSOC) : [];
+$stmtGrowth->execute();
+$growthRows = $stmtGrowth->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$growthLabels = [];
+$growthOrderValues = [];
+$growthRevenueValues = [];
+
+if (!empty($growthRows)) {
+    foreach ($growthRows as $row) {
+        $growthLabels[] = date('m/Y', strtotime($row['month_key'] . '-01'));
+        $growthOrderValues[] = (int) $row['order_count'];
+        $growthRevenueValues[] = (float) $row['revenue'];
+    }
+} else {
+    $date = new DateTime('first day of this month');
+    for ($i = 5; $i >= 0; $i--) {
+        $monthDate = (clone $date)->modify("-$i months");
+        $growthLabels[] = $monthDate->format('m/Y');
+        $growthOrderValues[] = 0;
+        $growthRevenueValues[] = 0;
+    }
+}
 
 $pageTitle = 'Admin Dashboard - Gundam Store';
 include '../includes/header.php';
@@ -297,47 +319,31 @@ include '../includes/header.php';
         </div>
     </div>
 
-    <!-- BẢNG DỮ LIỆU & BIỂU ĐỒ -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px; align-items: start;">
+    <div style="display:grid; grid-template-columns: 1.4fr 0.9fr; gap:20px; margin-top:20px; align-items:stretch;">
+        <!-- BIỂU ĐỒ TĂNG TRƯỞNG -->
         <div class="card" style="margin-top: 0;">
-            <h2 style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
-                Danh sách kết quả lọc (Tối đa 20 dòng)
-                <a href="orders.php" class="btn btn-blue btn-sm"><?php echo __('view_all'); ?></a>
-            </h2>
-            <?php if (empty($recentOrders)): ?>
-                <p style="color:var(--text-gray)">Không tìm thấy đơn hàng nào phù hợp với bộ lọc.</p>
-            <?php else: ?>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th><?php echo __('order_code_label'); ?></th>
-                            <th><?php echo __('customer_short'); ?></th>
-                            <th><?php echo __('total'); ?></th>
-                            <th><?php echo __('status'); ?></th>
-                            <th><?php echo __('date'); ?></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($recentOrders as $o): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($o['order_code']); ?></td>
-                            <td><?php echo htmlspecialchars($o['username']); ?></td>
-                            <td><?php echo formatPrice($o['total']); ?></td>
-                            <td><span class="status-badge <?php echo getOrderStatusClass($o['status']); ?>"><?php echo getOrderStatusLabel($o['status']); ?></span></td>
-                            <td><?php echo date('d/m/Y H:i', strtotime($o['created_at'])); ?></td>
-                            <td><a href="order_detail.php?id=<?php echo $o['id']; ?>" class="btn btn-blue btn-sm"><?php echo __('detail'); ?></a></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php endif; ?>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                <div>
+                    <h2 style="margin:0 0 6px 0;"><i class="fas fa-chart-line"></i> Tăng trưởng theo tháng</h2>
+                    <p style="margin:0; color:var(--text-muted);">Theo dõi xu hướng đơn hàng và doanh thu trong khoảng thời gian đã lọc.</p>
+                </div>
+                <div style="padding:6px 12px; border-radius:999px; background:rgba(31,95,255,0.12); color:#4f46e5; font-weight:600; font-size:0.85rem;">
+                    Đơn hàng + Doanh thu
+                </div>
+            </div>
+            <div style="height:320px; margin-top:16px;">
+                <canvas id="growthChart"></canvas>
+            </div>
         </div>
 
-        <div class="card" style="margin-top: 0; display: flex; flex-direction: column; align-items: center;">
-            <h2 style="margin-top:0; width: 100%; text-align: left;"><i class="fas fa-chart-pie"></i> Tỷ lệ đơn hàng hiện tại</h2>
-            <div style="width: 100%; max-width: 250px; margin: 10px auto;">
-                <canvas id="orderChart"></canvas>
+        <!-- BIỂU ĐỒ TRÒN TỶ LỆ -->
+        <div class="card" style="margin-top: 0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <h2 style="margin:0 0 10px 0; width:100%; text-align:left;"><i class="fas fa-chart-pie"></i> Tỷ lệ đơn hàng đã lọc</h2>
+            <div style="width:100%; max-width:260px; margin:10px auto;">
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div style="width:100%; text-align:center; color:var(--text-muted); font-size:0.9rem;">
+                Hoàn thành: <strong><?php echo (int)$soldCount; ?></strong> · Chưa hoàn thành: <strong><?php echo (int)$unsoldCount; ?></strong>
             </div>
         </div>
     </div>
@@ -345,42 +351,52 @@ include '../includes/header.php';
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const chartLabels = {
-        sold: <?php echo json_encode(__('chart_sold')); ?>,
-        unsold: <?php echo json_encode(__('chart_unsold')); ?>,
-        noData: <?php echo json_encode(__('chart_no_data')); ?>
-    };
-    const ctx = document.getElementById('orderChart').getContext('2d');
-    const sold = <?php echo (int)$soldCount; ?>;
-    const unsold = <?php echo (int)$unsoldCount; ?>;
-    
-    if (sold === 0 && unsold === 0) {
-        ctx.font = "16px sans-serif";
-        ctx.fillStyle = "#aaa";
-        ctx.textAlign = "center";
-        ctx.fillText(chartLabels.noData, 125, 125);
-        return;
-    }
-    
     const getChartColor = () => document.documentElement.classList.contains('light-theme') ? '#334155' : '#f0f0f0';
     const getBorderColor = () => document.documentElement.classList.contains('light-theme') ? '#e2e8f0' : '#111';
+    const getGridColor = () => document.documentElement.classList.contains('light-theme') ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255,255,255,0.12)';
 
-    const chart = new Chart(ctx, {
-        type: 'doughnut',
+    const growthCtx = document.getElementById('growthChart').getContext('2d');
+    const labels = <?php echo json_encode($growthLabels); ?>;
+    const orderData = <?php echo json_encode($growthOrderValues); ?>;
+    const revenueData = <?php echo json_encode($growthRevenueValues); ?>;
+
+    const growthChart = new Chart(growthCtx, {
+        type: 'line',
         data: {
-            labels: [chartLabels.sold, chartLabels.unsold],
-            datasets: [{
-                data: [sold, unsold],
-                backgroundColor: ['#28a745', '#dc3545'],
-                borderWidth: 1,
-                borderColor: getBorderColor()
-            }]
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Đơn hàng',
+                    data: orderData,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.16)',
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                },
+                {
+                    label: 'Doanh thu',
+                    data: revenueData,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.16)',
+                    fill: true,
+                    tension: 0.35,
+                    yAxisID: 'y1',
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }
+            ]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
                 legend: {
-                    position: 'bottom',
                     labels: {
                         color: getChartColor(),
                         boxWidth: 12,
@@ -389,17 +405,89 @@ document.addEventListener("DOMContentLoaded", function() {
                         }
                     }
                 }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: getChartColor()
+                    },
+                    grid: {
+                        color: getGridColor()
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    ticks: {
+                        color: getChartColor()
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: getChartColor()
+                    },
+                    grid: {
+                        color: getGridColor()
+                    }
+                }
             }
         }
     });
+
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const completed = <?php echo (int)$soldCount; ?>;
+    const uncompleted = <?php echo (int)$unsoldCount; ?>;
+
+    if (completed === 0 && uncompleted === 0) {
+        statusCtx.font = '16px sans-serif';
+        statusCtx.fillStyle = '#aaa';
+        statusCtx.textAlign = 'center';
+        statusCtx.fillText('Không có dữ liệu', 130, 130);
+    } else {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Hoàn thành', 'Chưa hoàn thành'],
+                datasets: [{
+                    data: [completed, uncompleted],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 1,
+                    borderColor: getBorderColor()
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: getChartColor(),
+                            boxWidth: 12,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     const themeToggleBtn = document.querySelector('.theme-toggle');
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', function() {
             setTimeout(() => {
-                chart.data.datasets[0].borderColor = getBorderColor();
-                chart.options.plugins.legend.labels.color = getChartColor();
-                chart.update();
+                growthChart.options.plugins.legend.labels.color = getChartColor();
+                growthChart.options.scales.y.ticks.color = getChartColor();
+                growthChart.options.scales.y.grid.color = getGridColor();
+                growthChart.options.scales.y1.ticks.color = getChartColor();
+                growthChart.options.scales.x.ticks.color = getChartColor();
+                growthChart.options.scales.x.grid.color = getGridColor();
+                growthChart.update();
             }, 100);
         });
     }

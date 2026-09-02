@@ -1,33 +1,41 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../../includes/auth.php';
 requireLogin();
 
 $orderId = (int)($_GET['id'] ?? 0);
 $userId = getUserId();
+
+// 1. Lấy thông tin đơn hàng (Đảm bảo đúng đơn hàng của User đang đăng nhập)
 $stmt = $conn->prepare("SELECT * FROM orders WHERE id = ? AND user_id = ?");
 $stmt->bind_param("ii", $orderId, $userId);
 $stmt->execute();
 $order = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$order) redirect('orders.php');
+if (!$order) {
+    redirect('orders.php');
+    exit; 
+}
 
+// 2. Lấy danh sách sản phẩm trong đơn hàng
 $stmt = $conn->prepare("SELECT * FROM order_items WHERE order_id = ?");
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Check for return request
-$stmt = $conn->prepare("SELECT * FROM order_returns WHERE order_id = ?");
+// 3. Check trạng thái đổi trả đơn hàng
+$stmt = $conn->prepare("SELECT * FROM order_returns WHERE order_id = ? ORDER BY created_at DESC LIMIT 1");
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $returnRequest = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
+$canRequestReturn = $order['status'] === 'completed';
+
 $flash = getFlash('order');
 $pageTitle = __('order_detail_title') . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="container">
@@ -45,16 +53,16 @@ include 'includes/header.php';
             <h2 style="margin-top:0"><?php echo __('order_products'); ?></h2>
             <?php foreach ($items as $item): ?>
             <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border-color)">
-                <img src="assets/images/<?php echo htmlspecialchars($item['product_image']); ?>" style="width:80px;height:80px;object-fit:contain;background:#1a1a1a;border-radius:8px;padding:6px">
+                <img src="<?php echo getAppBasePath(); ?>assets/images/<?php echo htmlspecialchars($item['product_image']); ?>" style="width:80px;height:80px;object-fit:contain;background:#1a1a1a;border-radius:8px;padding:6px">
                 <div style="flex:1">
                     <div style="font-weight:600"><?php echo htmlspecialchars($item['product_name']); ?></div>
-                    <div style="color:var(--text-gray);font-size:0.9rem"><?php echo formatPrice($item['price']); ?> x <?php echo $item['quantity']; ?></div>
+                    <div style="color:var(--text-gray);font-size:0.9rem"><?php echo formatPrice($item['price']); ?> x <?php echo (int)$item['quantity']; ?></div>
                 </div>
                 <div style="font-weight:bold"><?php echo formatPrice($item['subtotal']); ?></div>
             </div>
             <?php endforeach; ?>
             
-            <?php if ($order['payment_method'] === 'bank_transfer' && in_array($order['status'], ['pending', 'confirmed'])): ?>
+            <?php if ($order['payment_method'] === 'bank_transfer' && in_array($order['status'], ['pending', 'processing'], true)): ?>
             <!-- VietQR block inside customer order detail -->
             <div style="margin-top: 30px; padding: 20px; background: rgba(31, 95, 255, 0.08); border: 2px dashed var(--primary-blue); border-radius: 12px; text-align: center;">
                 <h3 style="margin-top: 0; color: var(--text-main);"><i class="fas fa-qrcode"></i> <?php echo __('qr_payment'); ?></h3>
@@ -75,7 +83,25 @@ include 'includes/header.php';
 
         <div class="card">
             <h2 style="margin-top:0"><?php echo __('order_info'); ?></h2>
-            <p><strong><?php echo __('status'); ?>:</strong> <span class="status-badge <?php echo getOrderStatusClass($order['status']); ?>"><?php echo getOrderStatusLabel($order['status']); ?></span></p>
+            
+            <p><strong><?php echo __('status'); ?>:</strong>
+                <?php if (!empty($returnRequest)): ?>
+                    <!-- Hệ thống kiểm soát luồng hiển thị dựa theo tiến độ thực tế của yêu cầu đổi trả -->
+                    <?php if ($returnRequest['status'] === 'pending'): ?>
+                        <span class="status-badge status-pending"><?php echo __('return_request'); ?> (<?php echo __('return_processing'); ?>)</span>
+                        <br><small style="color:var(--text-muted);"><?php echo __('status'); ?> gốc: <?php echo getOrderStatusLabel($order['status']); ?></small>
+                    <?php elseif ($returnRequest['status'] === 'approved'): ?>
+                        <span class="status-badge status-success" style="background:#27ae60; color:white;"><?php echo __('return_approved'); ?></span>
+                    <?php else: ?>
+                        <span class="status-badge status-danger" style="background:#c0392b; color:white;"><?php echo __('return_rejected'); ?></span>
+                        <br><small style="color:var(--text-muted);"><?php echo __('status'); ?> hiện tại: <?php echo getOrderStatusLabel($order['status']); ?></small>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <!-- Trạng thái mặc định khi không xảy ra tranh chấp đổi trả -->
+                    <span class="status-badge <?php echo getOrderStatusClass($order['status']); ?>"><?php echo getOrderStatusLabel($order['status']); ?></span>
+                <?php endif; ?>
+            </p>
+
             <p><strong><?php echo __('order_date_label'); ?>:</strong> <?php echo date('d/m/Y H:i', strtotime($order['created_at'])); ?></p>
             <p><strong><?php echo __('order_recipient'); ?>:</strong> <?php echo htmlspecialchars($order['full_name']); ?></p>
             <p><strong><?php echo __('phone'); ?>:</strong> <?php echo htmlspecialchars($order['phone']); ?></p>
@@ -87,6 +113,7 @@ include 'includes/header.php';
             <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span><?php echo __('ship_fee'); ?></span><span><?php echo formatPrice($order['shipping_fee']); ?></span></div>
             <div style="display:flex;justify-content:space-between;font-size:1.2rem;font-weight:bold"><span><?php echo __('order_total'); ?></span><span style="color:var(--primary-blue)"><?php echo formatPrice($order['total']); ?></span></div>
             
+            <!-- Khối thông tin/nút hành động xử lý đổi trả của User -->
             <?php if ($returnRequest): ?>
                 <div style="margin-top:20px; padding:15px; background:rgba(255,255,255,0.05); border-radius:8px; border:1px solid #444; text-align: left;">
                     <h3 style="margin-top:0; color:#ffc107; font-size:1.05rem;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></h3>
@@ -104,18 +131,20 @@ include 'includes/header.php';
                         <p style="margin: 8px 0; font-size:0.9rem; color:#ffc107;"><strong><?php echo __('return_admin_reply'); ?>:</strong> <?php echo htmlspecialchars($returnRequest['admin_comment']); ?></p>
                     <?php endif; ?>
                 </div>
-            <?php elseif ($order['status'] === 'delivered'): ?>
-                <a href="return_request.php?order_id=<?php echo $order['id']; ?>" class="btn btn-blue" style="width:100%; margin-top:20px; background:#e10600; justify-content: center;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></a>
+            <?php elseif ($order['status'] === 'completed'): ?>
+                <?php if ($canRequestReturn): ?>
+                    <a href="<?php echo getAppBasePath(); ?>public/order/return.php?order_id=<?php echo (int)$order['id']; ?>" class="btn btn-blue" style="width:100%; margin-top:20px; background:#e10600; justify-content: center;"><i class="fas fa-undo"></i> <?php echo __('return_request'); ?></a>
+                <?php endif; ?>
             <?php endif; ?>
             
-            <?php if (in_array($order['status'], ['pending', 'confirmed'], true)): ?>
-            <button type="button" id="btnCancelOrder" onclick="confirmCancelOrder(<?php echo $order['id']; ?>, '<?php echo htmlspecialchars($order['order_code']); ?>')"
+            <?php if (in_array($order['status'], ['pending', 'processing'], true)): ?>
+            <button type="button" id="btnCancelOrder" onclick="confirmCancelOrder(<?php echo (int)$order['id']; ?>, '<?php echo addslashes(htmlspecialchars($order['order_code'])); ?>')"
                 class="btn" style="width:100%;margin-top:12px;background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;border:none;cursor:pointer;justify-content:center;display:flex;align-items:center;gap:8px;font-weight:600;">
                 <i class="fas fa-times-circle"></i> <?php echo __('cancel_order'); ?>
             </button>
             <?php endif; ?>
             
-            <a href="orders.php" class="btn btn-gray" style="width:100%;margin-top:10px; justify-content: center;"><i class="fas fa-arrow-left"></i> <?php echo __('back_to_orders'); ?></a>
+            <a href="<?php echo getAppBasePath(); ?>orders.php" class="btn btn-gray" style="width:100%;margin-top:10px; justify-content: center;"><i class="fas fa-arrow-left"></i> <?php echo __('back_to_orders'); ?></a>
         </div>
     </div>
 </div>
@@ -182,7 +211,6 @@ function doCancel() {
     .then(function(data) {
         closeCancelModal();
         if (data.success) {
-            // Hiển thị thông báo thành công rồi reload
             var flash = document.createElement('div');
             flash.className = 'alert alert-success';
             flash.style.cssText = 'position:fixed;top:90px;right:20px;z-index:9998;padding:15px 20px;border-radius:10px;background:rgba(40,167,69,0.9);color:white;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
@@ -203,10 +231,9 @@ function doCancel() {
     });
 }
 
-// Đóng modal khi click bên ngoài
 document.getElementById('cancelModal').addEventListener('click', function(e) {
     if (e.target === this) closeCancelModal();
 });
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../../includes/footer.php'; ?>

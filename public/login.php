@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 if (isLoggedIn()) {
     redirect(isAdmin() ? 'admin/index.php' : 'index.php');
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($username === '' || $password === '') {
         $message = __('err_login_required');
     } else {
-        $stmt = $conn->prepare("SELECT id, username, password, role, is_active FROM users WHERE username = ? OR email = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, username, password, role, position, is_active FROM users WHERE username = ? OR email = ? LIMIT 1");
         $stmt->bind_param("ss", $username, $username);
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
@@ -62,15 +62,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         })();
     </script>
-    <link rel="stylesheet" href="assets/app.css">
+    <?php include __DIR__ . '/../includes/lang_head.php'; ?>
+    <link rel="stylesheet" href="<?php echo getAppBasePath(); ?>assets/app.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <div class="auth-page">
     <div class="auth-card">
-        <div style="display:flex;justify-content:flex-end;gap:4px;margin-bottom:10px;">
-            <a href="<?php echo htmlspecialchars(langUrl('vi')); ?>" class="btn-header btn-sm <?php echo currentLang() === 'vi' ? 'active-lang' : ''; ?>" style="padding:4px 8px;font-size:0.75rem;font-weight:700;">VI</a>
-            <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header btn-sm <?php echo currentLang() === 'en' ? 'active-lang' : ''; ?>" style="padding:4px 8px;font-size:0.75rem;font-weight:700;">EN</a>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+            <?php include __DIR__ . '/../includes/lang_switcher.php'; ?>
         </div>
         <div class="auth-brand">
             <i class="fas fa-robot"></i>
@@ -107,12 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="auth-link">
-            <p><?php echo __('no_account'); ?> <a href="register.php"><?php echo __('create_account'); ?></a></p>
+            <p><?php echo __('no_account'); ?> <a href="register"><?php echo __('create_account'); ?></a></p>
             <p style="margin-top:10px"><a href="index.php"><i class="fas fa-arrow-left"></i> <?php echo __('back_home_link'); ?></a></p>
         </div>
     </div>
 </div>
 
+<script src="<?php echo getAppBasePath(); ?>assets/app.js"></script>
 <script>
 document.getElementById('togglePassword').addEventListener('click', function() {
     const passwordInput = document.getElementById('password');

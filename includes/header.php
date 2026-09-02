@@ -1,6 +1,8 @@
 <?php
 if (!isset($pageTitle)) $pageTitle = 'Gundam Store HUMG';
-if (!isset($basePath)) $basePath = '';
+if (!isset($basePath) || $basePath === '') {
+    $basePath = function_exists('getAppBasePath') ? getAppBasePath() : '/';
+}
 
 $cartCount = 0;
 if (isLoggedIn() && !isAdmin()) {
@@ -21,12 +23,15 @@ if (isLoggedIn() && !isAdmin()) {
             }
         })();
     </script>
+    <?php include __DIR__ . '/lang_head.php'; ?>
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/style.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/app.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="<?php echo $basePath; ?>assets/images/favicon.ico">
 </head>
-<body data-base-path="<?php echo htmlspecialchars($basePath); ?>">
+<body data-base-path="<?php echo htmlspecialchars($basePath); ?>"
+      data-i18n-no-notifications="<?php echo htmlspecialchars(__('no_notifications')); ?>"
+      data-i18n-load-error="<?php echo htmlspecialchars(__('load_notifications_error')); ?>">
 <?php if (isAdmin()): ?>
 <?php include __DIR__ . '/admin_nav.php'; ?>
 <?php elseif (isEmployee()): ?>
@@ -43,26 +48,20 @@ if (isLoggedIn() && !isAdmin()) {
             </a>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="<?php echo $basePath; ?>index.php"><i class="fas fa-home"></i> <?php echo __('home'); ?></a></li>
-                <li><a href="<?php echo $basePath; ?>products.php"><i class="fas fa-box"></i> <?php echo __('products'); ?></a></li>
-                <li><a href="<?php echo $basePath; ?>products.php?type=SALE"><i class="fas fa-tag"></i> <?php echo __('sale'); ?></a></li>
+                <li><a href="<?php echo $basePath; ?>products"><i class="fas fa-box"></i> <?php echo __('products'); ?></a></li>
+                <li><a href="<?php echo $basePath; ?>products?type=SALE"><i class="fas fa-tag"></i> <?php echo __('sale'); ?></a></li>
                 <li><a href="<?php echo $basePath; ?>index.php#highlight"><i class="fas fa-star"></i> <?php echo __('highlight'); ?></a></li>
             </ul>
         </nav>
 
-        <form class="search-form live-search-form" action="<?php echo $basePath; ?>products.php" method="GET" role="search">
+        <form class="search-form live-search-form" action="<?php echo $basePath; ?>products" method="GET" role="search">
             <input type="text" name="search" placeholder="<?php echo __('search_placeholder'); ?>" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
             <button type="submit"><i class="fas fa-search"></i></button>
             <div class="search-suggestions" aria-live="polite"></div>
         </form>
 
         <div class="header-actions">
-            <div class="lang-switcher" style="display:inline-flex;gap:4px;">
-                <?php
-                $curLang = currentLang();
-                ?>
-                <a href="<?php echo htmlspecialchars(langUrl('vi')); ?>" class="btn-header btn-sm <?php echo $curLang === 'vi' ? 'active-lang' : ''; ?>" title="<?php echo __('lang_vi'); ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">VI</a>
-                <a href="<?php echo htmlspecialchars(langUrl('en')); ?>" class="btn-header btn-sm <?php echo $curLang === 'en' ? 'active-lang' : ''; ?>" title="<?php echo __('lang_en'); ?>" style="padding:6px 10px;font-size:0.75rem;font-weight:700;">EN</a>
-            </div>
+            <?php include __DIR__ . '/lang_switcher.php'; ?>
             <button type="button" class="theme-toggle" title="<?php echo __('theme_toggle'); ?>" aria-label="<?php echo __('theme_toggle'); ?>"><i class="fas fa-sun"></i></button>
             <?php if (isLoggedIn()): ?>
                 <!-- Notification Bell -->
@@ -89,7 +88,7 @@ if (isLoggedIn() && !isAdmin()) {
                     <button class="btn-header btn-user"><i class="fas fa-user"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></button>
                     <div class="dropdown-menu">
                         <a href="<?php echo $basePath; ?>profile.php"><i class="fas fa-id-card"></i> <?php echo __('profile'); ?></a>
-                        <a href="<?php echo $basePath; ?>orders.php"><i class="fas fa-receipt"></i> <?php echo __('orders'); ?></a>
+                        <a href="<?php echo $basePath; ?>orders"><i class="fas fa-receipt"></i> <?php echo __('orders'); ?></a>
                         <a href="<?php echo $basePath; ?>logout.php"><i class="fas fa-sign-out-alt"></i> <?php echo __('logout'); ?></a>
                     </div>
                 </div>
@@ -97,8 +96,8 @@ if (isLoggedIn() && !isAdmin()) {
                 <a href="<?php echo $basePath; ?>cart.php" class="btn-header btn-cart">
                     <i class="fas fa-shopping-cart"></i> <?php echo __('cart'); ?>
                 </a>
-                <a href="<?php echo $basePath; ?>login.php" class="btn-header btn-primary"><i class="fas fa-sign-in-alt"></i> <?php echo __('login'); ?></a>
-                <a href="<?php echo $basePath; ?>register.php" class="btn-header btn-outline"><?php echo __('register'); ?></a>
+                <a href="<?php echo $basePath; ?>login" class="btn-header btn-primary"><i class="fas fa-sign-in-alt"></i> <?php echo __('login'); ?></a>
+                <a href="<?php echo $basePath; ?>register" class="btn-header btn-outline"><?php echo __('register'); ?></a>
             <?php endif; ?>
         </div>
     </div>

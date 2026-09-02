@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../../includes/auth.php';
 requireLogin();
 
 if (isAdmin()) redirect('admin/orders.php');
@@ -9,20 +9,31 @@ $statusFilter = $_GET['status'] ?? '';
 $monthFilter = $_GET['month'] ?? '';
 $search = trim($_GET['search'] ?? '');
 
-$sql = "SELECT * FROM orders WHERE user_id = ?";
+// Định nghĩa danh sách các trạng thái hợp lệ (Đã thêm 'returning')
+$validStatuses = ['pending', 'processing', 'shipped', 'completed', 'returning', 'cancelled'];
+
+// 1. Tối ưu hóa Over-fetching: Chỉ SELECT những trường thực sự cần hiển thị
+$sql = "SELECT id, order_code, created_at, total, payment_method, status FROM orders WHERE user_id = ?";
 $params = [$userId];
 $types = 'i';
 
-if ($statusFilter && in_array($statusFilter, ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'], true)) {
+if ($statusFilter && in_array($statusFilter, $validStatuses, true)) {
     $sql .= " AND status = ?";
     $params[] = $statusFilter;
     $types .= 's';
 }
+
+// Tối ưu hóa Index: Chuyển đổi lọc tháng từ DATE_FORMAT sang Range Query (Sargable)
 if ($monthFilter && preg_match('/^\d{4}-\d{2}$/', $monthFilter)) {
-    $sql .= " AND DATE_FORMAT(created_at, '%Y-%m') = ?";
-    $params[] = $monthFilter;
-    $types .= 's';
+    $startDate = $monthFilter . '-01 00:00:00';
+    $endDate = date('Y-m-t 23:59:59', strtotime($startDate));
+    
+    $sql .= " AND created_at >= ? AND created_at <= ?";
+    $params[] = $startDate;
+    $params[] = $endDate;
+    $types .= 'ss';
 }
+
 if ($search !== '') {
     $sql .= " AND order_code LIKE ?";
     $params[] = '%' . $search . '%';
@@ -36,37 +47,43 @@ $stmt->execute();
 $orders = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Thống kê chi tiêu
-$stmt = $conn->prepare("SELECT COALESCE(SUM(total),0) as t FROM orders WHERE user_id = ? AND status != 'cancelled'");
-$stmt->bind_param('i', $userId);
+
+// 2. Kỹ thuật Conditional Aggregation: Gộp 3 câu lệnh COUNT/SUM rời rạc vào duy nhất 1 câu Query
+$firstDayOfThisMonth = date('Y-m-01 00:00:00');
+
+$statsQuery = "
+    SELECT 
+        COUNT(*) as total_orders,
+        SUM(CASE WHEN status NOT IN ('cancelled', 'returning') THEN total ELSE 0 END) as total_spent,
+        SUM(CASE WHEN status NOT IN ('cancelled', 'returning') AND created_at >= ? THEN total ELSE 0 END) as this_month_spent
+    FROM orders 
+    WHERE user_id = ?
+";
+$stmt = $conn->prepare($statsQuery);
+$stmt->bind_param('si', $firstDayOfThisMonth, $userId);
 $stmt->execute();
-$totalSpent = (float)($stmt->get_result()->fetch_assoc()['t'] ?? 0);
+$statsResult = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-$thisMonth = date('Y-m');
-$stmt = $conn->prepare("SELECT COALESCE(SUM(total),0) as t FROM orders WHERE user_id = ? AND status != 'cancelled' AND DATE_FORMAT(created_at,'%Y-%m') = ?");
-$stmt->bind_param('is', $userId, $thisMonth);
-$stmt->execute();
-$thisMonthSpent = (float)($stmt->get_result()->fetch_assoc()['t'] ?? 0);
-$stmt->close();
+$totalOrderCount = (int)($statsResult['total_orders'] ?? 0);
+$totalSpent      = (float)($statsResult['total_spent'] ?? 0);
+$thisMonthSpent  = (float)($statsResult['this_month_spent'] ?? 0);
 
-$stmt = $conn->prepare("SELECT COUNT(*) as c FROM orders WHERE user_id = ?");
-$stmt->bind_param('i', $userId);
-$stmt->execute();
-$totalOrderCount = (int)($stmt->get_result()->fetch_assoc()['c'] ?? 0);
-$stmt->close();
 
+// 3. Thống kê biểu đồ 6 tháng gần nhất (Loại bỏ các đơn huỷ và đơn đang hoàn trả khỏi doanh thu)
+$sixMonthsAgo = date('Y-m-d H:i:s', strtotime('-6 months'));
 $stmt = $conn->prepare("
     SELECT DATE_FORMAT(created_at, '%Y-%m') as month,
            COUNT(*) as order_count,
            COALESCE(SUM(total), 0) as total
     FROM orders
-    WHERE user_id = ? AND status != 'cancelled'
-      AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+    WHERE user_id = ? 
+      AND status NOT IN ('cancelled', 'returning')
+      AND created_at >= ?
     GROUP BY month
     ORDER BY month
 ");
-$stmt->bind_param('i', $userId);
+$stmt->bind_param('is', $userId, $sixMonthsAgo);
 $stmt->execute();
 $monthlyStats = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
@@ -78,7 +95,7 @@ $monthLabels = [
 ];
 
 $pageTitle = __('my_orders') . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -133,30 +150,32 @@ include 'includes/header.php';
                 <label style="font-size:0.85rem;color:var(--text-muted);"><?php echo __('status'); ?></label>
                 <select name="status" class="form-control">
                     <option value=""><?php echo __('all'); ?></option>
-                    <?php foreach (['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'] as $s): ?>
+                    <?php foreach ($validStatuses as $s): ?>
                     <option value="<?php echo $s; ?>" <?php echo $statusFilter === $s ? 'selected' : ''; ?>><?php echo getOrderStatusLabel($s); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <button type="submit" class="btn btn-blue btn-sm"><i class="fas fa-search"></i> <?php echo __('filter'); ?></button>
             <?php if ($search || $monthFilter || $statusFilter): ?>
-            <a href="orders.php" class="btn btn-gray btn-sm"><i class="fas fa-times"></i> <?php echo __('clear_filter'); ?></a>
+            <a href="<?php echo getAppBasePath(); ?>orders.php" class="btn btn-gray btn-sm"><i class="fas fa-times"></i> <?php echo __('clear_filter'); ?></a>
             <?php endif; ?>
         </form>
     </div>
 
+    <!-- Thanh chuyển tab nhanh (Quick Filter) -->
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;justify-content:center;">
         <?php
         $filterParams = [];
         if ($search) $filterParams['search'] = $search;
         if ($monthFilter) $filterParams['month'] = $monthFilter;
+        $basePath = getAppBasePath();
         $baseQuery = http_build_query($filterParams);
-        $allUrl = 'orders.php' . ($baseQuery ? '?' . $baseQuery : '');
+        $allUrl = $basePath . 'orders.php' . ($baseQuery ? '?' . $baseQuery : '');
         ?>
         <a href="<?php echo $allUrl; ?>" class="btn <?php echo !$statusFilter ? 'btn-blue' : 'btn-gray'; ?> btn-sm"><?php echo __('all'); ?></a>
-        <?php foreach (['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'] as $s):
+        <?php foreach ($validStatuses as $s):
             $q = array_merge($filterParams, ['status' => $s]);
-            $url = 'orders.php?' . http_build_query($q);
+            $url = $basePath . 'orders.php?' . http_build_query($q);
         ?>
         <a href="<?php echo $url; ?>" class="btn <?php echo $statusFilter === $s ? 'btn-blue' : 'btn-gray'; ?> btn-sm"><?php echo getOrderStatusLabel($s); ?></a>
         <?php endforeach; ?>
@@ -166,7 +185,7 @@ include 'includes/header.php';
         <div class="card" style="text-align:center;padding:50px">
             <i class="fas fa-receipt" style="font-size:3rem;color:var(--text-muted);margin-bottom:15px"></i>
             <p><?php echo ($statusFilter || $monthFilter || $search) ? __('no_orders_filter') : __('no_orders'); ?></p>
-            <a href="products.php" class="btn btn-blue" style="margin-top:15px"><?php echo __('shop_now'); ?></a>
+            <a href="<?php echo getAppBasePath(); ?>products.php" class="btn btn-blue" style="margin-top:15px"><?php echo __('shop_now'); ?></a>
         </div>
     <?php else: ?>
         <div class="card" style="overflow-x:auto">
@@ -189,7 +208,7 @@ include 'includes/header.php';
                         <td><?php echo formatPrice($order['total']); ?></td>
                         <td><?php echo $order['payment_method'] === 'cod' ? 'COD' : 'Chuyển khoản'; ?></td>
                         <td><span class="status-badge <?php echo getOrderStatusClass($order['status']); ?>"><?php echo getOrderStatusLabel($order['status']); ?></span></td>
-                        <td><a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-blue btn-sm"><?php echo __('detail'); ?></a></td>
+                        <td><a href="<?php echo getAppBasePath(); ?>order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-blue btn-sm"><?php echo __('detail'); ?></a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -257,4 +276,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php endif; ?>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../../includes/footer.php'; ?>

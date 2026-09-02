@@ -1,7 +1,6 @@
 <?php
-session_start();
-include "config/db.php";
-require_once "includes/auth.php";
+include __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../includes/auth.php';
 
 $type_filter  = isset($_GET['type']) ? $_GET['type'] : '';
 $search       = trim($_GET['search'] ?? '');
@@ -14,12 +13,12 @@ $items_per_page = 12;
 $current_page   = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset         = ($current_page - 1) * $items_per_page;
 
-$where  = ["status = 'active'"];
+$where  = ["p.status = 'active'"];
 $params = [];
 $types  = '';
 
 if (!empty($search)) {
-    $where[]     = "(name LIKE ? OR description LIKE ? OR series LIKE ? OR category LIKE ?)";
+    $where[]     = "(p.name LIKE ? OR p.description LIKE ? OR p.series LIKE ? OR c.name LIKE ?)";
     $searchParam = '%' . $search . '%';
     $params      = array_merge($params, [$searchParam, $searchParam, $searchParam, $searchParam]);
     $types      .= 'ssss';
@@ -28,10 +27,10 @@ if (!empty($search)) {
 
 if (!empty($type_filter)) {
     if ($type_filter == 'SALE') {
-        $where[]    = "is_sale = 1 AND old_price IS NOT NULL";
+        $where[]    = "p.is_sale = 1 AND p.old_price IS NOT NULL";
         $page_title = $page_title ?? __('products_on_sale');
     } else {
-        $where[]  = "type = ?";
+        $where[]  = "p.grade = ?";
         $params[] = $type_filter;
         $types   .= 's';
         $page_title = $page_title ?? sprintf(__('products_type'), $type_filter);
@@ -40,12 +39,12 @@ if (!empty($type_filter)) {
 
 // Lọc giá
 if ($price_min !== null) {
-    $where[]  = "price >= ?";
+    $where[]  = "p.price >= ?";
     $params[] = $price_min;
     $types   .= 'i';
 }
 if ($price_max !== null) {
-    $where[]  = "price <= ?";
+    $where[]  = "p.price <= ?";
     $params[] = $price_max;
     $types   .= 'i';
 }
@@ -55,15 +54,15 @@ $whereClause = implode(' AND ', $where);
 
 // Sắp xếp
 $orderSQL = match($sort_by) {
-    'price_asc'  => 'price ASC',
-    'price_desc' => 'price DESC',
-    'name_asc'   => 'name ASC',
-    'popular'    => 'is_featured DESC, id DESC',
-    default      => 'id DESC'
+    'price_asc'  => 'p.price ASC',
+    'price_desc' => 'p.price DESC',
+    'name_asc'   => 'p.name ASC',
+    'popular'    => 'p.is_featured DESC, p.id DESC',
+    default      => 'p.id DESC'
 };
 
 // Tính tổng sản phẩm
-$count_sql = "SELECT COUNT(*) as total FROM products WHERE $whereClause";
+$count_sql = "SELECT COUNT(*) as total FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE $whereClause";
 $stmt      = $conn->prepare($count_sql);
 if ($params) $stmt->bind_param($types, ...$params);
 $stmt->execute();
@@ -72,7 +71,7 @@ $stmt->close();
 $total_pages = max(1, ceil($total_products / $items_per_page));
 
 // Lấy sản phẩm hiện tại
-$sql  = "SELECT * FROM products WHERE $whereClause ORDER BY $orderSQL LIMIT ? OFFSET ?";
+$sql  = "SELECT p.* FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE $whereClause ORDER BY $orderSQL LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($sql);
 $allParams = array_merge($params, [$items_per_page, $offset]);
 $allTypes  = $types . 'ii';
@@ -86,7 +85,7 @@ $globalMin  = (int)$priceRange['min_price'];
 $globalMax  = (int)$priceRange['max_price'];
 
 $pageTitle = $page_title . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="container" style="margin-top: 20px;">
@@ -116,11 +115,11 @@ include 'includes/header.php';
             <div class="filter-section">
                 <div class="filter-section-title"><i class="fas fa-layer-group"></i> <?php echo __('filter_segment'); ?></div>
                 <?php
-                $count_sql    = "SELECT type, COUNT(*) as count FROM products WHERE status = 'active' GROUP BY type";
+                $count_sql    = "SELECT grade, COUNT(*) as count FROM products WHERE status = 'active' GROUP BY grade";
                 $count_result = mysqli_query($conn, $count_sql);
                 $counts       = [];
                 if ($count_result) {
-                    while($row = mysqli_fetch_assoc($count_result)) $counts[$row['type']] = $row['count'];
+                    while($row = mysqli_fetch_assoc($count_result)) $counts[$row['grade']] = $row['count'];
                 }
                 $sale_sql    = "SELECT COUNT(*) as sale_count FROM products WHERE status = 'active' AND is_sale = 1 AND old_price IS NOT NULL";
                 $sale_result = mysqli_query($conn, $sale_sql);
@@ -248,7 +247,7 @@ include 'includes/header.php';
                 $formatted_old_price = $row['old_price'] ? number_format($row['old_price'], 0, ',', '.') . ' ₫' : '';
                 $is_sale             = $row['is_sale'] && $row['old_price'];
                 $discount            = $is_sale ? round(100 - ($row['price'] / $row['old_price'] * 100)) : 0;
-                $image_path          = "assets/images/" . $row['image'];
+                $image_path          = __DIR__ . '/../../assets/images/' . $row['image'];
                 $use_image           = (!empty($row['image']) && file_exists($image_path)) ? $row['image'] : 'LOGO.jpg';
             ?>
             <div class="product-card <?php echo $is_sale ? 'sale' : ''; ?>">
@@ -257,11 +256,11 @@ include 'includes/header.php';
                 <?php endif; ?>
                 <div class="product-image-container">
                     <a href="products_detail.php?id=<?= $row['id'] ?>" style="display:contents">
-                        <img src="assets/images/<?= htmlspecialchars($use_image) ?>" alt="<?= htmlspecialchars($row['name']) ?>" class="product-image" onerror="this.src='assets/images/LOGO.jpg'">
+                        <img src="<?php echo getAppBasePath(); ?>assets/images/<?= htmlspecialchars($use_image) ?>" alt="<?= htmlspecialchars($row['name']) ?>" class="product-image" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
                     </a>
                 </div>
                 <div class="product-info">
-                    <span class="product-type"><?= htmlspecialchars($row['type']) ?></span>
+                    <span class="product-type"><?= htmlspecialchars($row['grade']) ?></span>
                     <h3 class="product-name"><a href="products_detail.php?id=<?= $row['id'] ?>"><?= htmlspecialchars($row['name']) ?></a></h3>
                     <div class="product-rating">
                         <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
@@ -623,5 +622,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 $stmt->close();
-include 'includes/footer.php';
+include __DIR__ . '/../../includes/footer.php';
 ?>

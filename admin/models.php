@@ -1,34 +1,84 @@
 <?php
 require_once '../includes/auth.php';
-requireAdmin();
+requirePermission('products');
 
 $basePath = '../';
+
+// Filter parameters
+$search = trim($_GET['search'] ?? '');
+$categoryFilter = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$statusFilter = $_GET['status'] ?? 'all';
+$allowedStatuses = ['all', 'sale', 'featured', 'out_of_stock', 'in_stock'];
+if (!in_array($statusFilter, $allowedStatuses, true)) {
+    $statusFilter = 'all';
+}
+
+// Load categories for filter dropdown
+$categories = [];
+$catResult = mysqli_query($conn, "SELECT id, name FROM categories ORDER BY name ASC");
+if ($catResult) {
+    while ($cat = mysqli_fetch_assoc($catResult)) {
+        $categories[] = $cat;
+    }
+    mysqli_free_result($catResult);
+}
 
 // Xử lý xóa sản phẩm
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
-    
+
+    $check_sql = "SELECT COUNT(*) AS used_count FROM order_items WHERE product_id = $id";
+    $check_result = mysqli_query($conn, $check_sql);
+    $check_data = mysqli_fetch_assoc($check_result);
+
+    if (!empty($check_data['used_count']) && (int)$check_data['used_count'] > 0) {
+        header("Location: models.php?message=Sản phẩm này đang được sử dụng trong đơn hàng, không thể xóa. Bạn có thể ẩn sản phẩm thay vì xóa.&error=true");
+        exit();
+    }
+
     // Lấy thông tin ảnh để xóa
     $sql_img = "SELECT image FROM products WHERE id = $id";
     $result_img = mysqli_query($conn, $sql_img);
     $product_img = mysqli_fetch_assoc($result_img);
-    
+
     // Xóa ảnh nếu không phải ảnh mặc định
     if ($product_img['image'] != "models_default_img.jpeg" && file_exists("../assets/images/" . $product_img['image'])) {
         unlink("../assets/images/" . $product_img['image']);
     }
-    
+
     // Xóa sản phẩm từ database
     $delete_sql = "DELETE FROM products WHERE id = $id";
     mysqli_query($conn, $delete_sql);
-    
+
     // Thông báo thành công
     header("Location: models.php?message=Xóa sản phẩm thành công&success=true");
     exit();
 }
 
-// Lấy danh sách sản phẩm
-$sql = "SELECT * FROM products ORDER BY id ASC";
+// Lấy danh sách sản phẩm theo bộ lọc (JOIN với categories để lấy tên danh mục)
+$whereClauses = [];
+if ($categoryFilter > 0) {
+    $whereClauses[] = "p.category_id = " . $categoryFilter;
+}
+if ($statusFilter === 'sale') {
+    $whereClauses[] = "p.is_sale = 1 AND p.old_price IS NOT NULL";
+} elseif ($statusFilter === 'featured') {
+    $whereClauses[] = "p.is_featured = 1";
+} elseif ($statusFilter === 'out_of_stock') {
+    $whereClauses[] = "p.stock = 0";
+} elseif ($statusFilter === 'in_stock') {
+    $whereClauses[] = "p.stock > 0";
+}
+if ($search !== '') {
+    $escapedSearch = mysqli_real_escape_string($conn, $search);
+    $whereClauses[] = "(p.name LIKE '%$escapedSearch%' OR p.grade LIKE '%$escapedSearch%' OR c.name LIKE '%$escapedSearch%')";
+}
+$whereSql = '';
+if (!empty($whereClauses)) {
+    $whereSql = 'WHERE ' . implode(' AND ', $whereClauses);
+}
+
+$sql = "SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id $whereSql ORDER BY p.id ASC";
 $result = mysqli_query($conn, $sql);
 
 // Kiểm tra thông báo từ URL
@@ -790,11 +840,39 @@ if (isset($_GET['message'])) {
         </div>
         
         <!-- Header với nút hành động -->
-        <div class="admin-header">
-            <h2 style="color: white; font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-list"></i> Danh sách Models
-            </h2>
-            <div class="admin-actions">
+        <div class="admin-header" style="flex-wrap: wrap; gap: 20px;">
+            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+                <h2 style="color: white; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin: 0;">
+                    <i class="fas fa-list"></i> Danh sách Models
+                </h2>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <form method="GET" action="models.php" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                        <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Tìm kiếm tên, loại hoặc danh mục..." style="padding:10px 14px; border-radius:10px; border:1px solid #333; background:#111; color:#f5f5f5; min-width:240px;">
+                        <select name="category_id" style="padding:10px 14px; border-radius:10px; border:1px solid #333; background:#111; color:#f5f5f5; min-width:180px;">
+                            <option value="0">Tất cả danh mục</option>
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo $cat['id']; ?>" <?php echo $categoryFilter === (int)$cat['id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat['name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select name="status" style="padding:10px 14px; border-radius:10px; border:1px solid #333; background:#111; color:#f5f5f5; min-width:180px;">
+                            <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>Tất cả trạng thái</option>
+                            <option value="sale" <?php echo $statusFilter === 'sale' ? 'selected' : ''; ?>>Đang sale</option>
+                            <option value="featured" <?php echo $statusFilter === 'featured' ? 'selected' : ''; ?>>Nổi bật</option>
+                            <option value="out_of_stock" <?php echo $statusFilter === 'out_of_stock' ? 'selected' : ''; ?>>Hết hàng</option>
+                            <option value="in_stock" <?php echo $statusFilter === 'in_stock' ? 'selected' : ''; ?>>Còn hàng</option>
+                        </select>
+                        <button type="submit" class="btn-admin btn-primary" style="padding:10px 18px;">Lọc</button>
+                        <?php if ($search !== '' || $categoryFilter > 0 || $statusFilter !== 'all'): ?>
+                            <a href="models.php" class="btn-admin btn-secondary" style="padding:10px 18px;">Xóa lọc</a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+                <div class="admin-actions">
+                <a href="categories.php" class="btn-admin btn-secondary">
+                    <i class="fas fa-tags"></i> Quản lý danh mục
+                </a>
                 <a href="add_model.php" class="btn-admin btn-primary">
                     <i class="fas fa-plus"></i> Thêm Model mới
                 </a>
@@ -840,10 +918,10 @@ if (isset($_GET['message'])) {
                                  onerror="this.src='../assets/images/models_default_img.jpeg'">
                         </td>
                         <td>
-                            <strong style="color: white; font-size: 1.05rem;"><?php echo $row["name"]; ?></strong><br>
-                            <small style="color: #888; font-size: 0.9rem;"><?php echo $row["category"]; ?></small>
+                            <strong style="color: white; font-size: 1.05rem;"><?php echo htmlspecialchars($row["name"]); ?></strong><br>
+                            <small style="color: #888; font-size: 0.9rem;"><?php echo htmlspecialchars($row["category_name"] ?? 'Chưa phân loại'); ?></small>
                         </td>
-                        <td><span class="type-badge"><?php echo $row["type"]; ?></span></td>
+                        <td><span class="type-badge"><?php echo htmlspecialchars($row["grade"]); ?></span></td>
                         
                         <!-- Cột Giá gốc -->
                         <td class="price-cell">
@@ -908,7 +986,7 @@ if (isset($_GET['message'])) {
                                 </a>
                                 <button type="button" 
                                         class="btn-action btn-delete" 
-                                        onclick="showDeleteModal(<?php echo $row['id']; ?>, '<?php echo addslashes($row['name']); ?>', '<?php echo $row['type']; ?>', '<?php echo number_format($row['price'], 0, ',', '.'); ?>')">
+                                        onclick="showDeleteModal(<?php echo $row['id']; ?>, '<?php echo addslashes($row['name']); ?>', '<?php echo addslashes($row['grade']); ?>', '<?php echo number_format($row['price'], 0, ',', '.'); ?>')">
                                     <i class="fas fa-trash"></i> Xóa
                                 </button>
                             </div>
@@ -933,7 +1011,7 @@ if (isset($_GET['message'])) {
 <!-- FOOTER -->
 <footer class="footer">
     <div class="footer_text">
-        <p>Gundam Store HUMG © 2025 - All Rights Reserved</p>
+        <p>Gundam Store HUMG © 2025 - Mac Quang Minh</p>
         <p style="margin-top: 10px; font-size: 12px; color: #888;">
             Địa chỉ: Trường Đại học Mỏ - Địa chất | Hotline: 0969 946 335 | Email: gundamstore@humg.vn
         </p>

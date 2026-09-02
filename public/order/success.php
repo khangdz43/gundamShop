@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/auth.php';
+require_once __DIR__ . '/../../includes/auth.php';
 requireLogin();
 
 $code = $_GET['code'] ?? '';
@@ -15,7 +15,7 @@ $stmt->close();
 if (!$order) redirect('orders.php');
 
 $pageTitle = __('order_success_title') . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="container" style="max-width:600px;text-align:center;padding:60px 20px">
@@ -45,10 +45,10 @@ include 'includes/header.php';
         </div>
         <?php endif; ?>
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-            <a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-blue"><i class="fas fa-receipt"></i> <?php echo __('view_detail'); ?></a>
-            <a href="products.php" class="btn btn-gray"><i class="fas fa-shopping-bag"></i> <?php echo __('continue_shopping'); ?></a>
+            <a href="<?php echo getAppBasePath(); ?>order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-blue"><i class="fas fa-receipt"></i> <?php echo __('view_detail'); ?></a>
+            <a href="<?php echo getAppBasePath(); ?>products.php" class="btn btn-gray"><i class="fas fa-shopping-bag"></i> <?php echo __('continue_shopping'); ?></a>
         </div>
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../../includes/footer.php'; ?>

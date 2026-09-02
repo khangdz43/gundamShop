@@ -33,9 +33,9 @@ $r = $conn->query("SELECT COUNT(*) as c FROM users WHERE is_active=1"); $stats['
 
 $positionLabels = [
     'admin'          => ['label' => 'Quản trị viên', 'color' => '#1f5fff', 'icon' => 'fas fa-crown'],
-    'order_manager'  => ['label' => 'QL Đơn hàng',   'color' => '#28a745', 'icon' => 'fas fa-shopping-bag'],
-    'return_manager' => ['label' => 'QL Đổi trả',    'color' => '#ffc107', 'icon' => 'fas fa-undo'],
-    'staff'          => ['label' => 'Nhân viên',      'color' => '#17a2b8', 'icon' => 'fas fa-user-tie'],
+    'order_manager'   => ['label' => 'QL Đơn hàng',    'color' => '#28a745', 'icon' => 'fas fa-shopping-bag'],
+    'product_manager' => ['label' => 'QL Sản phẩm',   'color' => '#007bff', 'icon' => 'fas fa-box'],
+    'staff'           => ['label' => 'Nhân viên',      'color' => '#17a2b8', 'icon' => 'fas fa-user-tie'],
 ];
 
 $pageTitle = 'Quản lý User - Gundam Store';
@@ -87,16 +87,16 @@ include '../includes/header.php';
         <table class="data-table" style="font-size:0.82rem;">
             <thead>
                 <tr>
-                    <th>Chức vụ</th><th>Dashboard</th><th>Sản phẩm</th><th>Đơn hàng</th><th>Đổi trả</th><th>QL Users</th><th>Gửi TB</th><th>AI</th>
+                    <th>Chức vụ</th><th>Dashboard</th><th>Sản phẩm</th><th>Đơn hàng</th><th>Đổi trả</th><th>QL Users</th><th>Gửi TB</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
                 $permTable = [
-                    ['Quản trị viên (admin)',    '✅','✅','✅','✅','✅','✅','✅'],
-                    ['QL Đơn hàng (order_manager)','✅','❌','✅','❌','❌','❌','❌'],
-                    ['QL Đổi trả (return_manager)','✅','❌','❌','✅','❌','❌','❌'],
-                    ['Nhân viên (staff)',          '✅','❌','✅','✅','❌','❌','❌'],
+                    ['Quản trị viên (admin)',        'YES','YES','YES','YES','YES','YES'],
+                    ['QL Đơn hàng (order_manager)', 'YES','NO','YES','NO','NO','NO'],
+                    ['QL Sản phẩm (product_manager)','YES','YES','NO','NO','NO','NO'],
+                    ['Nhân viên (staff)',           'YES','NO','NO','NO','YES','NO'],
                 ];
                 foreach ($permTable as $row):
                     $cols = array_slice($row, 1);

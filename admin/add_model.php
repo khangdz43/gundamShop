@@ -4,6 +4,14 @@ requireAdmin();
 
 $basePath = '../';
 
+$categories = [];
+$categories_result = mysqli_query($conn, "SELECT id, name FROM categories ORDER BY name ASC");
+if ($categories_result) {
+    while ($row = mysqli_fetch_assoc($categories_result)) {
+        $categories[] = $row;
+    }
+}
+
 // Xử lý form thêm sản phẩm
 $message = "";
 $success = false;
@@ -11,7 +19,7 @@ $success = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = mysqli_real_escape_string($conn, $_POST['name']);
     $price = mysqli_real_escape_string($conn, $_POST['price']);
-    $category = mysqli_real_escape_string($conn, $_POST['category']);
+    $category_id = (int)($_POST['category_id'] ?? 0);
     $description = mysqli_real_escape_string($conn, $_POST['description']);
     $type = mysqli_real_escape_string($conn, $_POST['type']);
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
@@ -48,14 +56,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Nếu không có lỗi, thêm vào database
     if (empty($message)) {
-        $sql = "INSERT INTO products (name, price, category, image, description, old_price, type, series, stock, is_featured, is_sale) 
-                VALUES ('$name', '$price', '$category', '$image_name', '$description', " . ($old_price ? "'$old_price'" : "NULL") . ", '$type', '$series', '$stock', '$is_featured', '$is_sale')";
+        if ($category_id <= 0) {
+            $message = "Vui lòng chọn danh mục!";
+        } else {
+            $sql = "INSERT INTO products (name, price, category_id, image, description, old_price, grade, series, stock, is_featured, is_sale) 
+                    VALUES ('$name', '$price', '$category_id', '$image_name', '$description', " . ($old_price ? "'$old_price'" : "NULL") . ", '$type', '$series', '$stock', '$is_featured', '$is_sale')";
         
-        if (mysqli_query($conn, $sql)) {
+            if (mysqli_query($conn, $sql)) {
             $message = "Thêm sản phẩm thành công!";
             $success = true;
-        } else {
-            $message = "Lỗi: " . mysqli_error($conn);
+            } else {
+                $message = "Lỗi: " . mysqli_error($conn);
+            }
         }
     }
 }
@@ -451,8 +463,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         
                         <div class="form-group">
                             <label for="category" class="required">Danh mục</label>
-                            <input type="text" id="category" name="category" class="form-control" required 
-                                   placeholder="VD: Gundam, Zaku, etc.">
+                            <select id="category" name="category_id" class="form-control" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <?php foreach ($categories as $category): ?>
+                                    <option value="<?php echo (int)$category['id']; ?>"
+                                        <?php echo (!empty($_POST['category_id']) && (int)$_POST['category_id'] === (int)$category['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         
                         <div class="form-group">
@@ -560,7 +579,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!-- FOOTER -->
 <footer class="footer">
     <div class="footer_text">
-        <p>Gundam Store HUMG © 2025 - All Rights Reserved</p>
+        <p>Gundam Store HUMG © 2025 - Mac Quang Minh</p>
         <p style="margin-top: 10px; font-size: 12px; color: #888;">
             Địa chỉ: Trường Đại học Mỏ - Địa chất | Hotline: 0969 946 335 | Email: gundamstore@humg.vn
         </p>

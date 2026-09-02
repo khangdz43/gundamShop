@@ -1,1 +1,0 @@
-AI,mô tả sản phẩm , phân khúc, danh mục, notify bên giao diện người dùng, nhiều chỗ trong giao diện admin  chưa chuyển sang tiếng anh

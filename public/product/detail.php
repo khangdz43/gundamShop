@@ -1,7 +1,7 @@
 <?php
 session_start();
-include "config/db.php";
-require_once "includes/auth.php";
+include __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../includes/auth.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -9,10 +9,12 @@ if ($id == 0) {
     die("<h3 style='color:red; text-align:center; margin-top:50px;'>" . __('product_not_found') . "</h3>");
 }
 
-// Lấy thông tin sản phẩm từ database
-$sql = "SELECT * FROM products WHERE id = $id";
-$result = mysqli_query($conn, $sql);
-$product = mysqli_fetch_assoc($result);
+// Lấy thông tin sản phẩm từ database bằng prepared statement
+$stmt_prod = $conn->prepare("SELECT p.*, c.name AS category FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?");
+$stmt_prod->bind_param("i", $id);
+$stmt_prod->execute();
+$product = $stmt_prod->get_result()->fetch_assoc();
+$stmt_prod->close();
 
 if (!$product) {
     die("<h3 style='color:red; text-align:center; margin-top:50px;'>" . __('product_not_found') . "</h3>");
@@ -43,14 +45,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
     }
 }
 
-// Lấy danh sách đánh giá
-$sql_reviews = "SELECT r.*, u.username, u.full_name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.product_id = $id ORDER BY r.created_at DESC";
-$result_reviews = mysqli_query($conn, $sql_reviews);
+// Lấy danh sách đánh giá bằng prepared statement
+$stmt_reviews = $conn->prepare("SELECT r.*, u.username, u.full_name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.product_id = ? ORDER BY r.created_at DESC");
+$stmt_reviews->bind_param("i", $id);
+$stmt_reviews->execute();
+$result_reviews = $stmt_reviews->get_result();
+// Note: We close the statement at the end of file after looping, or fetch all now to be clean and close it.
+$reviews_list = $result_reviews->fetch_all(MYSQLI_ASSOC);
+$stmt_reviews->close();
 
-// Tính trung bình đánh giá
-$sql_avg = "SELECT AVG(rating) as avg_rating, COUNT(*) as count_reviews FROM reviews WHERE product_id = $id";
-$result_avg = mysqli_query($conn, $sql_avg);
-$avg_row = mysqli_fetch_assoc($result_avg);
+// Tính trung bình đánh giá bằng prepared statement
+$stmt_avg = $conn->prepare("SELECT AVG(rating) as avg_rating, COUNT(*) as count_reviews FROM reviews WHERE product_id = ?");
+$stmt_avg->bind_param("i", $id);
+$stmt_avg->execute();
+$avg_row = $stmt_avg->get_result()->fetch_assoc();
+$stmt_avg->close();
+
 $avg_rating = $avg_row['avg_rating'] ? round($avg_row['avg_rating'], 1) : 0;
 $count_reviews = $avg_row['count_reviews'];
 
@@ -59,7 +69,7 @@ $formatted_old_price = $product['old_price'] ? number_format($product['old_price
 $discount = $product['old_price'] ? round(100 - ($product['price'] / $product['old_price'] * 100)) : 0;
 
 $pageTitle = htmlspecialchars($product['name']) . ' - Gundam Store';
-include 'includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="product-detail-container">
@@ -77,10 +87,10 @@ include 'includes/header.php';
         <!-- Gallery -->
         <div class="detail-gallery">
             <div class="detail-main-img-box">
-                <img src="assets/images/<?php echo htmlspecialchars($product['image'] ?: 'LOGO.jpg'); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="detail-main-img" id="mainImage" onerror="this.src='assets/images/LOGO.jpg'">
+                <img src="<?php echo getAppBasePath(); ?>assets/images/<?php echo htmlspecialchars($product['image'] ?: 'LOGO.jpg'); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="detail-main-img" id="mainImage" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
             </div>
             <div class="detail-thumbnails">
-                <img src="assets/images/<?php echo htmlspecialchars($product['image'] ?: 'LOGO.jpg'); ?>" alt="Gundam Thumbnail" class="detail-thumb active" onclick="changeImage(this.src)" onerror="this.src='assets/images/LOGO.jpg'">
+                <img src="<?php echo getAppBasePath(); ?>assets/images/<?php echo htmlspecialchars($product['image'] ?: 'LOGO.jpg'); ?>" alt="Gundam Thumbnail" class="detail-thumb active" onclick="changeImage(this.src)" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
             </div>
         </div>
         
@@ -114,7 +124,7 @@ include 'includes/header.php';
             </div>
             
             <div class="detail-meta-row">
-                <span class="product-type"><?= htmlspecialchars($product['type']) ?></span>
+                <span class="product-type"><?= htmlspecialchars($product['grade']) ?></span>
                 <span style="color: var(--text-muted); font-size: 0.9rem;">
                     <i class="fas fa-barcode" style="color: var(--primary-blue); margin-right: 4px;"></i>
                     Mã: GUNDAM-<?php echo str_pad($product['id'], 3, '0', STR_PAD_LEFT); ?>
@@ -174,7 +184,7 @@ include 'includes/header.php';
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0; border-bottom: 1px solid var(--border-color)">
                         <span style="color: var(--text-muted)">Phân khúc:</span>
-                        <strong><?php echo htmlspecialchars($product['type']); ?></strong>
+                        <strong><?php echo htmlspecialchars($product['grade']); ?></strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0; border-bottom: 1px solid var(--border-color)">
                         <span style="color: var(--text-muted)">Danh mục:</span>
@@ -184,9 +194,9 @@ include 'includes/header.php';
                         <span style="color: var(--text-muted)">Tỉ lệ:</span>
                         <strong>
                             <?php 
-                                if($product['type'] == 'HG' || $product['type'] == 'RG') echo '1/144';
-                                elseif($product['type'] == 'MG') echo '1/100';
-                                elseif($product['type'] == 'PG') echo '1/60';
+                                if($product['grade'] == 'HG' || $product['grade'] == 'RG') echo '1/144';
+                                elseif($product['grade'] == 'MG') echo '1/100';
+                                elseif($product['grade'] == 'PG') echo '1/60';
                                 else echo 'Chibi';
                             ?>
                         </strong>
@@ -226,10 +236,7 @@ include 'includes/header.php';
             <div class="reviews-list">
                 <?php if ($count_reviews > 0): ?>
                     <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                        <?php 
-                        mysqli_data_seek($result_reviews, 0); // Đưa con trỏ kết quả về đầu
-                        while($rev = mysqli_fetch_assoc($result_reviews)): 
-                        ?>
+                        <?php foreach ($reviews_list as $rev): ?>
                             <div class="review-item" style="padding: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 15px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                     <strong style="color: var(--text-white);"><?php echo htmlspecialchars($rev['full_name'] ?: $rev['username']); ?></strong>
@@ -250,7 +257,7 @@ include 'includes/header.php';
                                     <?php echo nl2br(htmlspecialchars($rev['comment'])); ?>
                                 </p>
                             </div>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     </div>
                 <?php else: ?>
                     <div style="text-align: center; padding: 40px; color: var(--text-muted);">
@@ -355,9 +362,9 @@ include 'includes/header.php';
         <div class="products-grid" style="margin-top: 20px;">
             <?php
             // Lấy sản phẩm cùng loại
-            $related_sql = "SELECT * FROM products WHERE type = ? AND id != ? AND status = 'active' LIMIT 4";
+            $related_sql = "SELECT * FROM products WHERE grade = ? AND id != ? AND status = 'active' LIMIT 4";
             $related_stmt = $conn->prepare($related_sql);
-            $related_stmt->bind_param("si", $product['type'], $product['id']);
+            $related_stmt->bind_param("si", $product['grade'], $product['id']);
             $related_stmt->execute();
             $related_result = $related_stmt->get_result();
             
@@ -383,11 +390,11 @@ include 'includes/header.php';
                 <?php endif; ?>
                 <div class="product-image-container">
                     <a href="products_detail.php?id=<?= $related['id'] ?>" style="display:contents">
-                        <img src="assets/images/<?= htmlspecialchars($related['image'] ?: 'LOGO.jpg') ?>" alt="<?= htmlspecialchars($related['name']) ?>" class="product-image" onerror="this.src='assets/images/LOGO.jpg'">
+                        <img src="<?php echo getAppBasePath(); ?>assets/images/<?= htmlspecialchars($related['image'] ?: 'LOGO.jpg') ?>" alt="<?= htmlspecialchars($related['name']) ?>" class="product-image" onerror="this.src='<?php echo getAppBasePath(); ?>assets/images/LOGO.jpg'">
                     </a>
                 </div>
                 <div class="product-info">
-                    <span class="product-type"><?= htmlspecialchars($related['type']) ?></span>
+                    <span class="product-type"><?= htmlspecialchars($related['grade']) ?></span>
                     <h3 class="product-name"><a href="products_detail.php?id=<?= $related['id'] ?>"><?= htmlspecialchars($related['name']) ?></a></h3>
                     <div class="product-price">
                         <span class="current-price"><?= $related_price ?></span>
@@ -466,5 +473,5 @@ include 'includes/header.php';
 </script>
 
 <?php
-include 'includes/footer.php';
+include __DIR__ . '/../../includes/footer.php';
 ?>

@@ -2,6 +2,8 @@
 session_start();
 include "../config/db.php";
 
+$basePath = '../';
+
 // Chỉ admin mới xem được
 if (!isset($_SESSION["username"]) || $_SESSION["username"] != "admin") {
     die("Bạn không có quyền truy cập trang này.");
@@ -12,12 +14,13 @@ $success = false;
 $product = null;
 $product_id = 0;
 
+
 // Lấy ID sản phẩm cần chỉnh sửa
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $product_id = intval($_GET['id']);
     
     // Lấy thông tin sản phẩm từ database
-    $sql = "SELECT * FROM products WHERE id = $product_id";
+    $sql = "SELECT p.*, c.name AS category FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = $product_id";
     $result = mysqli_query($conn, $sql);
     
     if (mysqli_num_rows($result) > 0) {
@@ -80,14 +83,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
     
     // Nếu không có lỗi, cập nhật database
     if (empty($message)) {
+        // Lấy hoặc tạo category_id
+        $category_name = trim($_POST['category']);
+        $category_id = 0;
+        if (!empty($category_name)) {
+            $stmt = $conn->prepare("SELECT id FROM categories WHERE name = ?");
+            $stmt->bind_param("s", $category_name);
+            $stmt->execute();
+            $res = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            if ($res) {
+                $category_id = (int)$res['id'];
+            } else {
+                $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $category_name)));
+                $stmt = $conn->prepare("INSERT INTO categories (name, slug) VALUES (?, ?)");
+                $stmt->bind_param("ss", $category_name, $slug);
+                $stmt->execute();
+                $category_id = $stmt->insert_id;
+                $stmt->close();
+            }
+        }
+
         $sql = "UPDATE products SET 
                 name = '$name', 
                 price = '$price', 
-                category = '$category', 
+                category_id = '$category_id', 
                 image = '$image_name', 
                 description = '$description', 
                 old_price = " . ($old_price ? "'$old_price'" : "NULL") . ", 
-                type = '$type', 
+                grade = '$type', 
                 stock = '$stock',
                 is_featured = '$is_featured', 
                 is_sale = '$is_sale' 
@@ -98,7 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
             $success = true;
             
             // Lấy lại thông tin sản phẩm mới
-            $sql = "SELECT * FROM products WHERE id = $product_id";
+            $sql = "SELECT p.*, c.name AS category FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = $product_id";
             $result = mysqli_query($conn, $sql);
             $product = mysqli_fetch_assoc($result);
         } else {
@@ -651,13 +675,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
                             <label for="type" class="required">Loại</label>
                             <select id="type" name="type" class="form-control" required>
                                 <option value="">-- Chọn loại --</option>
-                                <option value="HG" <?php echo $product['type'] == 'HG' ? 'selected' : ''; ?>>High Grade (HG)</option>
-                                <option value="MG" <?php echo $product['type'] == 'MG' ? 'selected' : ''; ?>>Master Grade (MG)</option>
-                                <option value="RG" <?php echo $product['type'] == 'RG' ? 'selected' : ''; ?>>Real Grade (RG)</option>
-                                <option value="PG" <?php echo $product['type'] == 'PG' ? 'selected' : ''; ?>>Perfect Grade (PG)</option>
-                                <option value="SD" <?php echo $product['type'] == 'SD' ? 'selected' : ''; ?>>Super Deformed (SD)</option>
-                                <option value="MGEX" <?php echo $product['type'] == 'MGEX' ? 'selected' : ''; ?>>Master Grade Extreme (MGEX)</option>
-                                <option value="Other" <?php echo $product['type'] == 'Other' ? 'selected' : ''; ?>>Khác (Other)</option>
+                                <option value="HG" <?php echo $product['grade'] == 'HG' ? 'selected' : ''; ?>>High Grade (HG)</option>
+                                <option value="MG" <?php echo $product['grade'] == 'MG' ? 'selected' : ''; ?>>Master Grade (MG)</option>
+                                <option value="RG" <?php echo $product['grade'] == 'RG' ? 'selected' : ''; ?>>Real Grade (RG)</option>
+                                <option value="PG" <?php echo $product['grade'] == 'PG' ? 'selected' : ''; ?>>Perfect Grade (PG)</option>
+                                <option value="SD" <?php echo $product['grade'] == 'SD' ? 'selected' : ''; ?>>Super Deformed (SD)</option>
+                                <option value="MGEX" <?php echo $product['grade'] == 'MGEX' ? 'selected' : ''; ?>>Master Grade Extreme (MGEX)</option>
+                                <option value="Other" <?php echo $product['grade'] == 'Other' ? 'selected' : ''; ?>>Khác (Other)</option>
                             </select>
                         </div>
                         
@@ -791,7 +815,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
 <!-- FOOTER -->
 <footer class="footer">
     <div class="footer_text">
-        <p>Gundam Store HUMG © 2025 - All Rights Reserved</p>
+        <p>Gundam Store HUMG © 2025 - Mac Quang Minh</p>
         <p style="margin-top: 10px; font-size: 12px; color: #888;">
             Địa chỉ: Trường Đại học Mỏ - Địa chất | Hotline: 0969 946 335 | Email: gundamstore@humg.vn
         </p>
